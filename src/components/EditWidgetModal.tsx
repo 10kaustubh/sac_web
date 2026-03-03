@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Widget, Dimension, Measure } from '../types';
 
@@ -12,19 +12,23 @@ interface EditWidgetModalProps {
 
 const MEASURE_COLORS = ['#0a6ed1', '#df6e0c', '#36a41d', '#a100c2', '#00b4f0', '#ff6b6b', '#4ecdc4'];
 
+type WidgetType = 'chart' | 'kpi' | 'table';
+type ChartType = 'line' | 'bar' | 'pie' | 'column' | 'stacked' | 'area' | 'donut';
+
 export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget, onClose, onSave }) => {
   const { dimensions, measures } = useData();
   
-  const [widgetType, setWidgetType] = useState<'chart' | 'kpi' | 'table'>('chart');
-  const [chartType, setChartType] = useState<'line' | 'bar' | 'pie' | 'column' | 'stacked'>('bar');
+  const [widgetType, setWidgetType] = useState<WidgetType>('chart');
+  const [chartType, setChartType] = useState<ChartType>('bar');
   const [title, setTitle] = useState('');
   const [selectedDimensions, setSelectedDimensions] = useState<Dimension[]>([]);
   const [selectedMeasures, setSelectedMeasures] = useState<Measure[]>([]);
 
   useEffect(() => {
     if (widget) {
-      setWidgetType(widget.type);
-      setChartType(widget.chartType || 'bar');
+      const wType = widget.type === 'text' ? 'chart' : widget.type;
+      setWidgetType(wType as WidgetType);
+      setChartType((widget.chartType || 'bar') as ChartType);
       setTitle(widget.title);
       setSelectedDimensions(widget.dimensions);
       setSelectedMeasures(widget.measures);
@@ -93,28 +97,30 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
-          <h2 className="text-xl font-semibold text-sap-dark">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-semibold text-sap-dark dark:text-white">
             {widget ? 'Edit Widget' : 'Add Widget'}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X size={20} />
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+            <X size={20} className="dark:text-white" />
           </button>
         </div>
         
         <form onSubmit={handleSubmit} className="p-4 space-y-6">
           {/* Widget Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Widget Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Widget Type</label>
             <div className="flex gap-2">
               {(['chart', 'kpi', 'table'] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => setWidgetType(type)}
-                  className={`flex-1 p-3 border rounded-lg capitalize ${
-                    widgetType === type ? 'border-sap-blue bg-blue-50 text-sap-blue' : 'hover:bg-gray-50'
+                  className={`flex-1 p-3 border dark:border-gray-600 rounded-lg capitalize ${
+                    widgetType === type 
+                      ? 'border-sap-blue bg-blue-50 dark:bg-blue-900/30 text-sap-blue' 
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white'
                   }`}
                 >
                   {type}
@@ -126,15 +132,17 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
           {/* Chart Type */}
           {widgetType === 'chart' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Chart Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Type</label>
               <div className="flex gap-2 flex-wrap">
-                {(['bar', 'line', 'pie', 'column', 'stacked'] as const).map((type) => (
+                {(['bar', 'line', 'column', 'pie', 'donut', 'area', 'stacked'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
                     onClick={() => setChartType(type)}
-                    className={`px-4 py-2 border rounded-lg capitalize ${
-                      chartType === type ? 'border-sap-blue bg-blue-50 text-sap-blue' : 'hover:bg-gray-50'
+                    className={`px-4 py-2 border dark:border-gray-600 rounded-lg capitalize ${
+                      chartType === type 
+                        ? 'border-sap-blue bg-blue-50 dark:bg-blue-900/30 text-sap-blue' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white'
                     }`}
                   >
                     {type}
@@ -146,34 +154,33 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Widget title (auto-generated if empty)"
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
             />
           </div>
 
           {/* Dimensions */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Dimensions ({selectedDimensions.length} selected)
             </label>
             
-            {/* Selected Dimensions */}
             <div className="flex flex-wrap gap-2 mb-2">
               {selectedDimensions.map((dim) => (
                 <span
                   key={dim.id}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-sap-blue rounded-full text-sm"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-sap-blue rounded-full text-sm"
                 >
                   {dim.name}
                   <button
                     type="button"
                     onClick={() => handleRemoveDimension(dim.id)}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
                   >
                     <X size={14} />
                   </button>
@@ -181,11 +188,10 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
               ))}
             </div>
 
-            {/* Add Dimension */}
             {availableDimensions.length > 0 && (
               <div className="flex gap-2">
                 <select
-                  className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
+                  className="flex-1 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
                   onChange={(e) => {
                     if (e.target.value) {
                       handleAddDimension(e.target.value);
@@ -205,11 +211,10 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
 
           {/* Measures */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Measures ({selectedMeasures.length} selected)
             </label>
             
-            {/* Selected Measures */}
             <div className="flex flex-wrap gap-2 mb-2">
               {selectedMeasures.map((meas) => (
                 <span
@@ -229,11 +234,10 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
               ))}
             </div>
 
-            {/* Add Measure */}
             {availableMeasures.length > 0 && (
               <div className="flex gap-2">
                 <select
-                  className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
+                  className="flex-1 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
                   onChange={(e) => {
                     if (e.target.value) {
                       handleAddMeasure(e.target.value);
@@ -252,11 +256,11 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-end gap-2 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               onClick={() => { resetForm(); onClose(); }}
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white"
             >
               Cancel
             </button>

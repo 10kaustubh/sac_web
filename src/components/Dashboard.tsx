@@ -3,7 +3,7 @@ import { KPICard } from './KPICard';
 import { FilterBar } from './FilterBar';
 import { RevenueChart, RegionPieChart, ProductBarChart } from './Charts';
 import { StoryList } from './StoryList';
-import { CreateStoryModal } from './CreateStoryModal';
+import { TemplateSelector } from './TemplateSelector';
 import { StoryEditor } from './StoryEditor';
 import { useData } from '../context/DataContext';
 
@@ -14,13 +14,12 @@ export const Dashboard: React.FC = () => {
     activeStory, 
     setActiveStory,
     stories,
-    createStory,
     deleteStory,
     getMultiMeasureData,
     filteredData
   } = useData();
 
-  const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
 
   if (activeStory) {
     return <StoryEditor />;
@@ -62,11 +61,14 @@ export const Dashboard: React.FC = () => {
   }));
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-100 dark:bg-gray-900 min-h-full">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-sap-dark">Dashboard Overview</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-sap-dark dark:text-white">Dashboard Overview</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Welcome back! Here's what's happening with your data.</p>
+        </div>
         <button 
-          onClick={() => setIsCreateStoryOpen(true)}
+          onClick={() => setIsTemplateSelectorOpen(true)}
           className="bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           + Create Story
@@ -95,10 +97,9 @@ export const Dashboard: React.FC = () => {
         />
       </div>
 
-      <CreateStoryModal
-        isOpen={isCreateStoryOpen}
-        onClose={() => setIsCreateStoryOpen(false)}
-        onCreate={createStory}
+      <TemplateSelector
+        isOpen={isTemplateSelectorOpen}
+        onClose={() => setIsTemplateSelectorOpen(false)}
       />
     </div>
   );

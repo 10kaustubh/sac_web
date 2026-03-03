@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Database, Settings, PieChart, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, FileText, Database, Settings, PieChart, TrendingUp, Layers } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface SidebarProps {
   activeView: string;
@@ -12,10 +13,13 @@ const menuItems = [
   { id: 'models', label: 'Models', icon: Database },
   { id: 'analytics', label: 'Analytics', icon: PieChart },
   { id: 'planning', label: 'Planning', icon: TrendingUp },
+  { id: 'templates', label: 'Templates', icon: Layers },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+  const { theme } = useTheme();
+
   return (
     <aside className="w-64 bg-sap-shell text-white h-screen flex flex-col">
       <div className="p-4 border-b border-gray-600">
@@ -23,8 +27,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
           <PieChart size={24} />
           Analytics Cloud
         </h1>
+        <p className="text-xs text-gray-400 mt-1">SAC Clone v2.0</p>
       </div>
-      <nav className="flex-1 p-2">
+      <nav className="flex-1 p-2 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.id}
@@ -40,6 +45,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
           </button>
         ))}
       </nav>
+      <div className="p-4 border-t border-gray-600">
+        <div className="text-xs text-gray-400">
+          <p>Theme: {theme.mode === 'light' ? 'Light' : 'Dark'}</p>
+          <p className="mt-1">© 2024 SAC Clone</p>
+        </div>
+      </div>
     </aside>
   );
 };

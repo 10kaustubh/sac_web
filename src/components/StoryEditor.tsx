@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { WidgetRenderer } from './WidgetRenderer';
 import { EditWidgetModal } from './EditWidgetModal';
 import { FilterBar } from './FilterBar';
 import { Widget } from '../types';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export const StoryEditor: React.FC = () => {
   const { 
@@ -13,12 +15,16 @@ export const StoryEditor: React.FC = () => {
     setActiveStory, 
     setActivePageIndex,
     addPageToStory,
+    deletePageFromStory,
     addWidgetToPage,
     updateWidget,
+    duplicateWidget,
     deleteWidget,
     saveStory,
     filters,
-    applyFilter
+    applyFilter,
+    clearWidgetFilters,
+    widgetFilters
   } = useData();
   
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
@@ -26,6 +32,8 @@ export const StoryEditor: React.FC = () => {
   const [newPageTitle, setNewPageTitle] = useState('');
   const [showAddPage, setShowAddPage] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [showPageMenu, setShowPageMenu] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   if (!activeStory) return null;
 
@@ -47,6 +55,12 @@ export const StoryEditor: React.FC = () => {
     setEditingWidget(null);
   };
 
+  const handleDuplicateWidget = (widgetId: string) => {
+    if (currentPage) {
+      duplicateWidget(activeStory.id, currentPage.id, widgetId);
+    }
+  };
+
   const handleDeleteWidget = (widgetId: string) => {
     if (currentPage && window.confirm('Are you sure you want to delete this widget?')) {
       deleteWidget(activeStory.id, currentPage.id, widgetId);
@@ -61,6 +75,17 @@ export const StoryEditor: React.FC = () => {
     }
   };
 
+  const handleDeletePage = (pageId: string) => {
+    if (activeStory.pages.length > 1) {
+      if (window.confirm('Are you sure you want to delete this page?')) {
+        deletePageFromStory(activeStory.id, pageId);
+        setShowPageMenu(null);
+      }
+    } else {
+      alert('Cannot delete the only page in the story.');
+    }
+  };
+
   const handleSaveStory = () => {
     setSaveStatus('saving');
     saveStory(activeStory.id);
@@ -68,6 +93,42 @@ export const StoryEditor: React.FC = () => {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }, 500);
+  };
+
+  const handleExportPDF = async () => {
+    const content = document.getElementById('story-content');
+    if (content) {
+      try {
+        const canvas = await html2canvas(content, { scale: 2, backgroundColor: '#f3f4f6' });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`${activeStory.title.replace(/\s+/g, '_')}.pdf`);
+      } catch (error) {
+        console.error('PDF export failed:', error);
+      }
+    }
+    setShowExportMenu(false);
+  };
+
+  const handleExportImage = async () => {
+    const content = document.getElementById('story-content');
+    if (content) {
+      try {
+        const canvas = await html2canvas(content, { scale: 2, backgroundColor: '#f3f4f6' });
+        const link = document.createElement('a');
+        link.download = `${activeStory.title.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (error) {
+        console.error('Image export failed:', error);
+      }
+    }
+    setShowExportMenu(false);
   };
 
   const goToPrevPage = () => {
@@ -88,37 +149,76 @@ export const StoryEditor: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gray-100 dark:bg-gray-900">
       {/* Story Header */}
-      <div className="bg-white border-b p-4">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setActiveStory(null)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              onClick={() => {
+                clearWidgetFilters();
+                setActiveStory(null);
+              }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={20} className="dark:text-white" />
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-sap-dark">{activeStory.title}</h1>
+                <h1 className="text-xl font-bold text-sap-dark dark:text-white">{activeStory.title}</h1>
                 {!activeStory.isSaved && (
                   <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
                     Unsaved
                   </span>
                 )}
+                {widgetFilters.length > 0 && (
+                  <button
+                    onClick={clearWidgetFilters}
+                    className="text-xs bg-sap-blue/10 text-sap-blue px-2 py-0.5 rounded flex items-center gap-1 hover:bg-sap-blue/20"
+                  >
+                    Clear {widgetFilters.length} filter{widgetFilters.length > 1 ? 's' : ''}
+                  </button>
+                )}
               </div>
-              <p className="text-sm text-gray-500">{activeStory.description}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{activeStory.description}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Export Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="flex items-center gap-2 px-3 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <Download size={18} className="dark:text-white" />
+                <span className="dark:text-white">Export</span>
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
+                  <button
+                    onClick={handleExportPDF}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
+                  >
+                    Export as PDF
+                  </button>
+                  <button
+                    onClick={handleExportImage}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
+                  >
+                    Export as Image
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Save Button */}
             <button
               onClick={handleSaveStory}
               disabled={saveStatus === 'saving'}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 saveStatus === 'saved'
                   ? 'bg-green-500 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-sap-dark'
+                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sap-dark dark:text-white'
               }`}
             >
               {saveStatus === 'saving' ? (
@@ -134,10 +234,12 @@ export const StoryEditor: React.FC = () => {
               ) : (
                 <>
                   <Save size={18} />
-                  Save Story
+                  Save
                 </>
               )}
             </button>
+
+            {/* Add Widget Button */}
             <button
               onClick={openAddWidget}
               className="flex items-center gap-2 bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -150,39 +252,71 @@ export const StoryEditor: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="p-4 bg-gray-50 border-b">
+      <div className="p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <FilterBar filters={filters} onFilterChange={applyFilter} />
       </div>
 
       {/* Page Navigation */}
-      <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={goToPrevPage}
             disabled={activePageIndex === 0}
-            className={`p-1 rounded ${activePageIndex === 0 ? 'text-gray-300' : 'hover:bg-gray-100'}`}
+            className={`p-1 rounded ${activePageIndex === 0 ? 'text-gray-300 dark:text-gray-600' : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white'}`}
           >
             <ChevronLeft size={20} />
           </button>
           <div className="flex items-center gap-1">
             {activeStory.pages.map((page, index) => (
-              <button
-                key={page.id}
-                onClick={() => setActivePageIndex(index)}
-                className={`px-3 py-1 rounded text-sm ${
-                  index === activePageIndex
-                    ? 'bg-sap-blue text-white'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-              >
-                {page.title}
-              </button>
+              <div key={page.id} className="relative">
+                <button
+                  onClick={() => setActivePageIndex(index)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setShowPageMenu(page.id);
+                  }}
+                  className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                    index === activePageIndex
+                      ? 'bg-sap-blue text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  }`}
+                >
+                  {page.title}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowPageMenu(showPageMenu === page.id ? null : page.id);
+                    }}
+                    className="ml-1 p-0.5 rounded hover:bg-black/10"
+                  >
+                    <MoreVertical size={12} />
+                  </button>
+                </button>
+
+                {/* Page Menu */}
+                {showPageMenu === page.id && (
+                  <div className="absolute top-8 left-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[120px]">
+                    <button
+                      onClick={() => handleDeletePage(page.id)}
+                      disabled={activeStory.pages.length <= 1}
+                      className={`w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 ${
+                        activeStory.pages.length <= 1
+                          ? 'text-gray-300 dark:text-gray-500 cursor-not-allowed'
+                          : 'text-red-500 hover:bg-red-50 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <Trash2 size={14} />
+                      Delete Page
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <button
             onClick={goToNextPage}
             disabled={activePageIndex === activeStory.pages.length - 1}
-            className={`p-1 rounded ${activePageIndex === activeStory.pages.length - 1 ? 'text-gray-300' : 'hover:bg-gray-100'}`}
+            className={`p-1 rounded ${activePageIndex === activeStory.pages.length - 1 ? 'text-gray-300 dark:text-gray-600' : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white'}`}
           >
             <ChevronRight size={20} />
           </button>
@@ -195,7 +329,7 @@ export const StoryEditor: React.FC = () => {
               value={newPageTitle}
               onChange={(e) => setNewPageTitle(e.target.value)}
               placeholder="Page title"
-              className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sap-blue"
+              className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sap-blue"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleAddPage();
@@ -210,7 +344,7 @@ export const StoryEditor: React.FC = () => {
             </button>
             <button
               onClick={() => setShowAddPage(false)}
-              className="text-sm text-gray-500 hover:underline"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:underline"
             >
               Cancel
             </button>
@@ -227,7 +361,7 @@ export const StoryEditor: React.FC = () => {
       </div>
 
       {/* Page Content */}
-      <div className="flex-1 overflow-auto p-6 bg-gray-100">
+      <div id="story-content" className="flex-1 overflow-auto p-6">
         {currentPage && currentPage.widgets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {currentPage.widgets.map((widget) => (
@@ -235,17 +369,18 @@ export const StoryEditor: React.FC = () => {
                 key={widget.id}
                 widget={widget}
                 onEdit={() => handleEditWidget(widget)}
+                onDuplicate={() => handleDuplicateWidget(widget.id)}
                 onDelete={() => handleDeleteWidget(widget.id)}
               />
             ))}
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500">
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Plus size={32} className="text-gray-400" />
               </div>
-              <p className="text-lg mb-2">No widgets on this page</p>
+              <p className="text-lg mb-2 dark:text-white">No widgets on this page</p>
               <p className="text-sm text-gray-400 mb-4">Add charts, KPIs, or tables to visualize your data</p>
               <button
                 onClick={openAddWidget}
@@ -258,6 +393,17 @@ export const StoryEditor: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Close menus when clicking outside */}
+      {(showPageMenu || showExportMenu) && (
+        <div 
+          className="fixed inset-0 z-10" 
+          onClick={() => {
+            setShowPageMenu(null);
+            setShowExportMenu(false);
+          }}
+        />
+      )}
 
       <EditWidgetModal
         isOpen={isWidgetModalOpen}
