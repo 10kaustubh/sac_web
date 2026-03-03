@@ -1,14 +1,15 @@
 import React, { useRef, useState } from 'react';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  ComposedChart, ScatterChart, Scatter, Treemap
 } from 'recharts';
-import { TrendingUp, Trash2, Edit2, Copy, Download, Filter, X, ArrowUpDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2, Edit2, Copy, Download, Filter, X, ArrowUpDown, Link, Unlink } from 'lucide-react';
 import { Widget, SortConfig } from '../types';
 import { useData } from '../context/DataContext';
 import html2canvas from 'html2canvas';
 
-const COLORS = ['#0a6ed1', '#df6e0c', '#36a41d', '#a100c2', '#00b4f0', '#ff6b6b', '#4ecdc4'];
+const COLORS = ['#0a6ed1', '#df6e0c', '#36a41d', '#a100c2', '#00b4f0', '#ff6b6b', '#4ecdc4', '#f39c12', '#9b59b6', '#1abc9c'];
 
 interface WidgetRendererProps {
   widget: Widget;
@@ -23,10 +24,11 @@ interface DataItem {
 }
 
 export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete, onEdit, onDuplicate }) => {
-  const { getMultiMeasureData, applyWidgetFilter, widgetFilters, clearWidgetFilters } = useData();
+  const { getMultiMeasureData, getVarianceData, applyWidgetFilter, widgetFilters, clearWidgetFilters, linkedAnalysisEnabled, getDrillDownData } = useData();
   const widgetRef = useRef<HTMLDivElement>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [drillDownValue, setDrillDownValue] = useState<string | null>(null);
   
   const dimension = widget.dimensions[0];
   const measureFields = widget.measures.map(m => m.field);
@@ -39,7 +41,14 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
     );
   }
 
-  let data: DataItem[] = getMultiMeasureData(dimension.field, measureFields);
+  let data: DataItem[] = drillDownValue 
+    ? getDrillDownData(dimension.field, measureFields[0], drillDownValue)
+    : getMultiMeasureData(dimension.field, measureFields);
+
+  // Get variance data if needed
+  const varianceData = widget.variance?.enabled 
+    ? getVarianceData(dimension.field, measureFields[0], widget.variance.compareMeasure || 'plan_revenue')
+    : null;
 
   // Apply sorting for tables
   if (sortConfig && widget.type === 'table') {
@@ -56,11 +65,23 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
   }
 
   const handleDrillDown = (value: string) => {
-    applyWidgetFilter({
-      dimensionId: dimension.id,
-      field: dimension.field,
-      selectedValues: [value]
-    });
+    if (linkedAnalysisEnabled) {
+      applyWidgetFilter({
+        dimensionId: dimension.id,
+        field: dimension.field,
+        selectedValues: [value]
+      });
+    }
+  };
+
+  const handleChartClick = (chartData: any) => {
+    if (chartData && chartData.activePayload && chartData.activePayload[0]) {
+      handleDrillDown(chartData.activePayload[0].payload.name);
+    }
+  };
+
+  const handleDrillThrough = (value: string) => {
+    setDrillDownValue(drillDownValue === value ? null : value);
   };
 
   const handleExport = async (format: 'png' | 'jpg') => {
@@ -92,21 +113,54 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
 
   const isFiltered = widgetFilters.some(f => f.field === dimension.field);
 
-  const renderChart = () => {
-    const chartProps = {
-      data,
-      onClick: (data: any) => {
-        if (data && data.activePayload && data.activePayload[0]) {
-          handleDrillDown(data.activePayload[0].payload.name);
-        }
-      }
-    };
+  // Waterfall chart data transformation
+  const getWaterfallData = () => {
+    let cumulative = 0;
+    return data.map((item) => {
+      const value = Number(item[measureFields[0]]) || 0;
+      const start = cumulative;
+      cumulative += value;
+      return {
+        name: item.name,
+        value: value,
+        start: start,
+        end: cumulative,
+        fill: value >= 0 ? '#36a41d' : '#e74c3c'
+      };
+    });
+  };
 
+  // Pareto chart data transformation
+  const getParetoData = () => {
+    const sorted = [...data].sort((a, b) => 
+      (Number(b[measureFields[0]]) || 0) - (Number(a[measureFields[0]]) || 0)
+    );
+    const total = sorted.reduce((sum, item) => sum + (Number(item[measureFields[0]]) || 0), 0);
+    let cumulative = 0;
+    return sorted.map(item => {
+      const value = Number(item[measureFields[0]]) || 0;
+      cumulative += value;
+      return {
+        name: item.name,
+        value: value,
+        cumulative: (cumulative / total) * 100
+      };
+    });
+  };
+
+  // Gauge chart calculation
+  const getGaugeValue = () => {
+    const total = data.reduce((sum, item) => sum + (Number(item[measureFields[0]]) || 0), 0);
+    const target = data.reduce((sum, item) => sum + (Number(item['plan_revenue']) || total * 0.9), 0);
+    return { actual: total, target, percentage: (total / target) * 100 };
+  };
+
+  const renderChart = () => {
     switch (widget.chartType) {
       case 'line':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart {...chartProps}>
+            <LineChart data={data} onClick={handleChartClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -130,7 +184,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       case 'area':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart {...chartProps}>
+            <AreaChart data={data} onClick={handleChartClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -185,7 +239,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       case 'column':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart {...chartProps}>
+            <BarChart data={data} onClick={handleChartClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -207,7 +261,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       case 'stacked':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart {...chartProps}>
+            <BarChart data={data} onClick={handleChartClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -226,12 +280,165 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
             </BarChart>
           </ResponsiveContainer>
         );
+
+      case 'waterfall':
+        const waterfallData = getWaterfallData();
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={waterfallData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => `$${(Number(value) / 1000).toFixed(0)}K`} />
+              <Bar dataKey="start" stackId="waterfall" fill="transparent" />
+              <Bar dataKey="value" stackId="waterfall" fill="#0a6ed1">
+                {waterfallData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        );
+
+      case 'pareto':
+        const paretoData = getParetoData();
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <ComposedChart data={paretoData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis yAxisId="left" />
+              <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+              <Tooltip />
+              <Legend />
+              <Bar yAxisId="left" dataKey="value" name="Value" fill="#0a6ed1" />
+              <Line yAxisId="right" type="monotone" dataKey="cumulative" name="Cumulative %" stroke="#e74c3c" strokeWidth={2} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+
+      case 'gauge':
+        const gaugeData = getGaugeValue();
+        const gaugeColor = gaugeData.percentage >= 100 ? '#36a41d' : gaugeData.percentage >= 80 ? '#f39c12' : '#e74c3c';
+        return (
+          <div className="flex flex-col items-center justify-center h-[280px]">
+            <div className="relative w-48 h-24 overflow-hidden">
+              <div className="absolute w-48 h-48 rounded-full border-[16px] border-gray-200 dark:border-gray-700" 
+                   style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)' }} />
+              <div 
+                className="absolute w-48 h-48 rounded-full border-[16px] transition-all duration-500"
+                style={{ 
+                  borderColor: gaugeColor,
+                  clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+                  transform: `rotate(${Math.min(gaugeData.percentage, 100) * 1.8 - 180}deg)`,
+                  transformOrigin: 'center center'
+                }} 
+              />
+            </div>
+            <div className="text-center mt-4">
+              <p className="text-3xl font-bold" style={{ color: gaugeColor }}>
+                {gaugeData.percentage.toFixed(1)}%
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                ${(gaugeData.actual / 1000000).toFixed(2)}M / ${(gaugeData.target / 1000000).toFixed(2)}M
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'heatmap':
+        return (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b dark:border-gray-700">
+                  <th className="py-2 px-3 text-left font-medium text-gray-700 dark:text-gray-300">{dimension.name}</th>
+                  {widget.measures.map(m => (
+                    <th key={m.id} className="py-2 px-3 text-center font-medium text-gray-700 dark:text-gray-300">{m.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((row, idx) => {
+                  const maxValue = Math.max(...data.flatMap(r => widget.measures.map(m => Number(r[m.field]) || 0)));
+                  return (
+                    <tr key={idx} className="border-b dark:border-gray-700">
+                      <td className="py-2 px-3 dark:text-gray-300">{row.name}</td>
+                      {widget.measures.map(m => {
+                        const value = Number(row[m.field]) || 0;
+                        const intensity = value / maxValue;
+                        return (
+                          <td 
+                            key={m.id} 
+                            className="py-2 px-3 text-center text-white font-medium"
+                            style={{ backgroundColor: `rgba(10, 110, 209, ${0.2 + intensity * 0.8})` }}
+                          >
+                            ${(value / 1000).toFixed(0)}K
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+
+      case 'scatter':
+        if (widget.measures.length < 2) {
+          return <p className="text-gray-500 p-4">Scatter chart requires at least 2 measures</p>;
+        }
+        const scatterData = data.map(item => ({
+          name: item.name,
+          x: Number(item[widget.measures[0].field]) || 0,
+          y: Number(item[widget.measures[1].field]) || 0,
+          z: widget.measures[2] ? Number(item[widget.measures[2].field]) || 100 : 100
+        }));
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <ScatterChart>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="x" name={widget.measures[0].name} type="number" />
+              <YAxis dataKey="y" name={widget.measures[1].name} type="number" />
+              <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(value) => `$${(Number(value) / 1000).toFixed(0)}K`} />
+              <Legend />
+              <Scatter name="Data Points" data={scatterData} fill="#0a6ed1">
+                {scatterData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+        );
+
+      case 'treemap':
+        const treemapData = data.map(item => ({
+          name: item.name,
+          size: Number(item[measureFields[0]]) || 0
+        }));
+        return (
+          <ResponsiveContainer width="100%" height={280}>
+            <Treemap
+              data={treemapData}
+              dataKey="size"
+              aspectRatio={4 / 3}
+              stroke="#fff"
+              fill="#0a6ed1"
+            >
+              {treemapData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+              <Tooltip formatter={(value) => `$${(Number(value) / 1000).toFixed(0)}K`} />
+            </Treemap>
+          </ResponsiveContainer>
+        );
       
       case 'bar':
       default:
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart {...chartProps} layout="vertical">
+            <BarChart data={data} layout="vertical" onClick={handleChartClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="name" type="category" width={100} />
@@ -255,8 +462,15 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
   const renderKPI = () => {
     const totals = widget.measures.map(measure => {
       const total = data.reduce((sum, item) => sum + (Number(item[measure.field]) || 0), 0);
-      return { name: measure.name, value: total, color: measure.color };
+      return { name: measure.name, value: total, color: measure.color, field: measure.field };
     });
+
+    // Calculate variance if enabled
+    const variance = varianceData ? {
+      absolute: varianceData.reduce((sum: number, item: any) => sum + item.variance, 0),
+      percent: varianceData.reduce((sum: number, item: any) => sum + item.actual, 0) / 
+               varianceData.reduce((sum: number, item: any) => sum + item.plan, 0) * 100 - 100
+    } : null;
 
     return (
       <div className="grid grid-cols-1 gap-4 py-4">
@@ -266,10 +480,20 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
             <p className="text-3xl font-bold" style={{ color: item.color || COLORS[index % COLORS.length] }}>
               ${(item.value / 1000000).toFixed(2)}M
             </p>
-            <div className="flex items-center justify-center gap-1 mt-2 text-green-500">
-              <TrendingUp size={14} />
-              <span className="text-xs font-medium">+8.5%</span>
-            </div>
+            {variance && index === 0 && (
+              <div className={`flex items-center justify-center gap-1 mt-2 ${variance.percent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {variance.percent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                <span className="text-xs font-medium">
+                  {variance.percent >= 0 ? '+' : ''}{variance.percent.toFixed(1)}% vs Plan
+                </span>
+              </div>
+            )}
+            {!variance && (
+              <div className="flex items-center justify-center gap-1 mt-2 text-green-500">
+                <TrendingUp size={14} />
+                <span className="text-xs font-medium">+8.5%</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -303,21 +527,38 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                   </div>
                 </th>
               ))}
+              {varianceData && (
+                <>
+                  <th className="text-right py-2 px-3 font-medium text-gray-700 dark:text-gray-300">Variance</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-700 dark:text-gray-300">Var %</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
-            {data.map((row, index) => (
+            {(varianceData || data).map((row: any, index: number) => (
               <tr 
                 key={row.name + index} 
                 className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() => handleDrillDown(row.name)}
+                onDoubleClick={() => handleDrillThrough(row.name)}
               >
                 <td className="py-2 px-3 dark:text-gray-300">{row.name}</td>
                 {widget.measures.map((measure) => (
                   <td key={measure.id} className="text-right py-2 px-3 dark:text-gray-300">
-                    ${(Number(row[measure.field]) / 1000).toFixed(0)}K
+                    ${(Number(varianceData ? row.actual : row[measure.field]) / 1000).toFixed(0)}K
                   </td>
                 ))}
+                {varianceData && (
+                  <>
+                    <td className={`text-right py-2 px-3 font-medium ${row.variance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {row.variance >= 0 ? '+' : ''}${(row.variance / 1000).toFixed(0)}K
+                    </td>
+                    <td className={`text-right py-2 px-3 font-medium ${row.variancePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {row.variancePercent >= 0 ? '+' : ''}{row.variancePercent.toFixed(1)}%
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
@@ -325,13 +566,25 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
             <tr className="border-t-2 dark:border-gray-600 font-medium bg-gray-50 dark:bg-gray-700">
               <td className="py-2 px-3 dark:text-gray-300">Total</td>
               {widget.measures.map((measure) => {
-                const total = data.reduce((sum, item) => sum + (Number(item[measure.field]) || 0), 0);
+                const total = (varianceData || data).reduce((sum: number, item: any) => 
+                  sum + (Number(varianceData ? item.actual : item[measure.field]) || 0), 0);
                 return (
                   <td key={measure.id} className="text-right py-2 px-3 dark:text-gray-300">
                     ${(total / 1000).toFixed(0)}K
                   </td>
                 );
               })}
+              {varianceData && (
+                <>
+                  <td className={`text-right py-2 px-3 font-medium ${
+                    varianceData.reduce((s: number, i: any) => s + i.variance, 0) >= 0 ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {varianceData.reduce((s: number, i: any) => s + i.variance, 0) >= 0 ? '+' : ''}
+                    ${(varianceData.reduce((s: number, i: any) => s + i.variance, 0) / 1000).toFixed(0)}K
+                  </td>
+                  <td className="text-right py-2 px-3 dark:text-gray-300">-</td>
+                </>
+              )}
             </tr>
           </tfoot>
         </table>
@@ -343,8 +596,17 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
     <div ref={widgetRef} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 relative">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-lg font-semibold text-sap-dark dark:text-white">{widget.title}</h3>
+          {drillDownValue && (
+            <button
+              onClick={() => setDrillDownValue(null)}
+              className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200"
+            >
+              Drill: {drillDownValue}
+              <X size={12} />
+            </button>
+          )}
           {isFiltered && (
             <button
               onClick={clearWidgetFilters}
@@ -354,6 +616,12 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
               Filtered
               <X size={12} />
             </button>
+          )}
+          {linkedAnalysisEnabled && (
+            <span className="text-xs text-green-500 flex items-center gap-1">
+              <Link size={12} />
+              Linked
+            </span>
           )}
         </div>
         <div className="flex items-center gap-1 relative">
@@ -417,9 +685,13 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       {widget.type === 'kpi' && renderKPI()}
       {widget.type === 'table' && renderTable()}
 
-      {/* Drill-down hint */}
+      {/* Interaction hints */}
       {widget.type === 'chart' && (
-        <p className="text-xs text-center text-gray-400 mt-2">Click on chart elements to filter</p>
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mt-2">
+          <span>Click to filter</span>
+          <span>•</span>
+          <span>Double-click to drill</span>
+        </div>
       )}
     </div>
   );

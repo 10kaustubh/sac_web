@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical, Sparkles, Bookmark, Link, Unlink, Search, MessageSquare } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { WidgetRenderer } from './WidgetRenderer';
 import { EditWidgetModal } from './EditWidgetModal';
 import { FilterBar } from './FilterBar';
+import { SearchToInsight } from './SearchToInsight';
+import { SmartInsightsPanel } from './SmartInsightsPanel';
+import { BookmarksPanel } from './BookmarksPanel';
 import { Widget } from '../types';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -24,7 +27,9 @@ export const StoryEditor: React.FC = () => {
     filters,
     applyFilter,
     clearWidgetFilters,
-    widgetFilters
+    widgetFilters,
+    linkedAnalysisEnabled,
+    toggleLinkedAnalysis
   } = useData();
   
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
@@ -34,6 +39,9 @@ export const StoryEditor: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showPageMenu, setShowPageMenu] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isNLPSearchOpen, setIsNLPSearchOpen] = useState(false);
+  const [isInsightsPanelOpen, setIsInsightsPanelOpen] = useState(false);
+  const [isBookmarksPanelOpen, setIsBookmarksPanelOpen] = useState(false);
 
   if (!activeStory) return null;
 
@@ -53,6 +61,17 @@ export const StoryEditor: React.FC = () => {
       }
     }
     setEditingWidget(null);
+  };
+
+  const handleNLPCreateWidget = (widgetConfig: Partial<Widget>) => {
+    if (currentPage) {
+      const widget = {
+        ...widgetConfig,
+        id: `widget-${Date.now()}`,
+        filters: []
+      } as Widget;
+      addWidgetToPage(activeStory.id, currentPage.id, widget);
+    }
   };
 
   const handleDuplicateWidget = (widgetId: string) => {
@@ -184,6 +203,47 @@ export const StoryEditor: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Linked Analysis Toggle */}
+            <button
+              onClick={toggleLinkedAnalysis}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                linkedAnalysisEnabled 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+              }`}
+              title={linkedAnalysisEnabled ? 'Linked Analysis On' : 'Linked Analysis Off'}
+            >
+              {linkedAnalysisEnabled ? <Link size={16} /> : <Unlink size={16} />}
+              <span className="hidden md:inline">Linked</span>
+            </button>
+
+            {/* Smart Insights */}
+            <button
+              onClick={() => setIsInsightsPanelOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50"
+            >
+              <Sparkles size={16} />
+              <span className="hidden md:inline">Insights</span>
+            </button>
+
+            {/* Bookmarks */}
+            <button
+              onClick={() => setIsBookmarksPanelOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/50"
+            >
+              <Bookmark size={16} />
+              <span className="hidden md:inline">{activeStory.bookmarks?.length || 0}</span>
+            </button>
+
+            {/* Search to Insight */}
+            <button
+              onClick={() => setIsNLPSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50"
+            >
+              <Search size={16} />
+              <span className="hidden md:inline">Ask</span>
+            </button>
+
             {/* Export Button */}
             <div className="relative">
               <button
@@ -191,7 +251,7 @@ export const StoryEditor: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <Download size={18} className="dark:text-white" />
-                <span className="dark:text-white">Export</span>
+                <span className="dark:text-white hidden md:inline">Export</span>
               </button>
               {showExportMenu && (
                 <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
@@ -376,19 +436,28 @@ export const StoryEditor: React.FC = () => {
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center max-w-md">
               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Plus size={32} className="text-gray-400" />
               </div>
               <p className="text-lg mb-2 dark:text-white">No widgets on this page</p>
               <p className="text-sm text-gray-400 mb-4">Add charts, KPIs, or tables to visualize your data</p>
-              <button
-                onClick={openAddWidget}
-                className="flex items-center gap-2 bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 mx-auto"
-              >
-                <Plus size={18} />
-                Add Your First Widget
-              </button>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={openAddWidget}
+                  className="flex items-center gap-2 bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  <Plus size={18} />
+                  Add Widget
+                </button>
+                <button
+                  onClick={() => setIsNLPSearchOpen(true)}
+                  className="flex items-center gap-2 border border-sap-blue text-sap-blue px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                >
+                  <Sparkles size={18} />
+                  Ask a Question
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -405,6 +474,7 @@ export const StoryEditor: React.FC = () => {
         />
       )}
 
+      {/* Modals and Panels */}
       <EditWidgetModal
         isOpen={isWidgetModalOpen}
         widget={editingWidget}
@@ -413,6 +483,22 @@ export const StoryEditor: React.FC = () => {
           setEditingWidget(null);
         }}
         onSave={handleSaveWidget}
+      />
+
+      <SearchToInsight
+        isOpen={isNLPSearchOpen}
+        onClose={() => setIsNLPSearchOpen(false)}
+        onCreateWidget={handleNLPCreateWidget}
+      />
+
+      <SmartInsightsPanel
+        isOpen={isInsightsPanelOpen}
+        onClose={() => setIsInsightsPanelOpen(false)}
+      />
+
+      <BookmarksPanel
+        isOpen={isBookmarksPanelOpen}
+        onClose={() => setIsBookmarksPanelOpen(false)}
       />
     </div>
   );
