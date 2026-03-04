@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical, Sparkles, Bookmark, Link, Unlink, Search, Copy, FileText, Database } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical, Sparkles, Bookmark, Link, Unlink, Search, Database } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { WidgetRenderer } from './WidgetRenderer';
 import { EditWidgetModal } from './EditWidgetModal';
@@ -10,152 +10,6 @@ import { BookmarksPanel } from './BookmarksPanel';
 import { Widget } from '../types';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-
-// Save Dialog Component
-const SaveDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (title: string, description: string) => void;
-  currentTitle: string;
-  currentDescription: string;
-  isSaveAs?: boolean;
-}> = ({ isOpen, onClose, onSave, currentTitle, currentDescription, isSaveAs }) => {
-  const [title, setTitle] = useState(currentTitle);
-  const [description, setDescription] = useState(currentDescription);
-
-  React.useEffect(() => {
-    setTitle(currentTitle);
-    setDescription(currentDescription);
-  }, [currentTitle, currentDescription, isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-semibold text-sap-dark dark:text-white mb-4">
-          {isSaveAs ? 'Save Story As' : 'Save Story'}
-        </h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Story Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter story title"
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter story description"
-              rows={3}
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              if (title.trim()) {
-                onSave(title, description);
-                onClose();
-              }
-            }}
-            disabled={!title.trim()}
-            className="px-4 py-2 bg-sap-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Copy to Page Dialog Component
-const CopyToPageDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onCopy: (pageId: string) => void;
-  pages: { id: string; title: string }[];
-  currentPageId: string;
-}> = ({ isOpen, onClose, onCopy, pages, currentPageId }) => {
-  const [selectedPageId, setSelectedPageId] = useState('');
-
-  if (!isOpen) return null;
-
-  const otherPages = pages.filter(p => p.id !== currentPageId);
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-semibold text-sap-dark dark:text-white mb-4">
-          Copy Widget to Page
-        </h2>
-        {otherPages.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            No other pages available. Create a new page first.
-          </p>
-        ) : (
-          <div className="space-y-2 mb-4">
-            {otherPages.map(page => (
-              <button
-                key={page.id}
-                onClick={() => setSelectedPageId(page.id)}
-                className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                  selectedPageId === page.id
-                    ? 'border-sap-blue bg-blue-50 dark:bg-blue-900/30'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FileText size={16} className="text-gray-400" />
-                  <span className="dark:text-white">{page.title}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              if (selectedPageId) {
-                onCopy(selectedPageId);
-                onClose();
-              }
-            }}
-            disabled={!selectedPageId || otherPages.length === 0}
-            className="px-4 py-2 bg-sap-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            Copy
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const StoryEditor: React.FC = () => {
   const { 
@@ -171,7 +25,6 @@ export const StoryEditor: React.FC = () => {
     copyWidgetToPage,
     deleteWidget,
     saveStory,
-    saveStoryAs,
     filters,
     applyFilter,
     resetFilters,
@@ -191,14 +44,10 @@ export const StoryEditor: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showPageMenu, setShowPageMenu] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showSaveMenu, setShowSaveMenu] = useState(false);
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [isNLPSearchOpen, setIsNLPSearchOpen] = useState(false);
   const [isInsightsPanelOpen, setIsInsightsPanelOpen] = useState(false);
   const [isBookmarksPanelOpen, setIsBookmarksPanelOpen] = useState(false);
-  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
-  const [isSaveAsDialog, setIsSaveAsDialog] = useState(false);
-  const [copyToPageWidget, setCopyToPageWidget] = useState<string | null>(null);
 
   if (!activeStory) return null;
 
@@ -243,6 +92,49 @@ export const StoryEditor: React.FC = () => {
     }
   };
 
+  const handleCopyToNewPage = (widgetId: string) => {
+    if (currentPage && activeStory) {
+      const widget = currentPage.widgets.find(w => w.id === widgetId);
+      if (!widget) return;
+
+      const newPageTitle = `Page ${activeStory.pages.length + 1}`;
+      const newPageId = `page-${Date.now()}`;
+      
+      const newWidget = {
+        ...widget,
+        id: `widget-${Date.now()}`,
+        dimensions: widget.dimensions.map(d => ({ ...d })),
+        measures: widget.measures.map(m => ({ ...m })),
+        filters: widget.filters ? widget.filters.map(f => ({ ...f })) : [],
+      };
+
+      const newPage = {
+        id: newPageId,
+        title: newPageTitle,
+        widgets: [newWidget],
+        layout: [{
+          i: newWidget.id,
+          x: 0,
+          y: 0,
+          w: 6,
+          h: 4,
+          minW: 3,
+          minH: 2
+        }],
+        linkedAnalysis: true
+      };
+
+      const updatedStory = {
+        ...activeStory,
+        isSaved: false,
+        pages: [...activeStory.pages, newPage]
+      };
+
+      setActiveStory(updatedStory);
+      setActivePageIndex(updatedStory.pages.length - 1);
+    }
+  };
+
   const handleDeleteWidget = (widgetId: string) => {
     if (currentPage && window.confirm('Are you sure you want to delete this widget?')) {
       deleteWidget(activeStory.id, currentPage.id, widgetId);
@@ -268,36 +160,13 @@ export const StoryEditor: React.FC = () => {
     }
   };
 
-  const handleSaveStory = (title?: string) => {
+  const handleSaveStory = () => {
     setSaveStatus('saving');
-    saveStory(activeStory.id, title);
-    setShowSaveMenu(false);
+    saveStory(activeStory.id);
     setTimeout(() => {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }, 500);
-  };
-
-  const handleSaveAsStory = (title: string, description: string) => {
-    setSaveStatus('saving');
-    saveStoryAs(activeStory.id, title, description);
-    setShowSaveMenu(false);
-    setTimeout(() => {
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    }, 500);
-  };
-
-  const openSaveDialog = () => {
-    setIsSaveAsDialog(false);
-    setIsSaveDialogOpen(true);
-    setShowSaveMenu(false);
-  };
-
-  const openSaveAsDialog = () => {
-    setIsSaveAsDialog(true);
-    setIsSaveDialogOpen(true);
-    setShowSaveMenu(false);
   };
 
   const handleModelChange = (modelId: string) => {
@@ -358,6 +227,8 @@ export const StoryEditor: React.FC = () => {
     setIsWidgetModalOpen(true);
   };
 
+  const availablePages = activeStory.pages.map(p => ({ id: p.id, title: p.title }));
+
   return (
     <div className="h-full flex flex-col bg-gray-100 dark:bg-gray-900">
       {/* Story Header */}
@@ -404,20 +275,23 @@ export const StoryEditor: React.FC = () => {
                 <span className="hidden md:inline max-w-[120px] truncate">{selectedModel?.name || 'Select Model'}</span>
               </button>
               {showModelMenu && (
-                <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[200px]">
-                  {dataModels.map(model => (
-                    <button
-                      key={model.id}
-                      onClick={() => handleModelChange(model.id)}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-between ${
-                        selectedModel?.id === model.id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : 'dark:text-white'
-                      }`}
-                    >
-                      <span>{model.name}</span>
-                      {selectedModel?.id === model.id && <Check size={14} />}
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowModelMenu(false)} />
+                  <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[200px]">
+                    {dataModels.map(model => (
+                      <button
+                        key={model.id}
+                        onClick={() => handleModelChange(model.id)}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-between ${
+                          selectedModel?.id === model.id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : 'dark:text-white'
+                        }`}
+                      >
+                        <span>{model.name}</span>
+                        {selectedModel?.id === model.id && <Check size={14} />}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
 
@@ -472,68 +346,53 @@ export const StoryEditor: React.FC = () => {
                 <span className="dark:text-white hidden md:inline">Export</span>
               </button>
               {showExportMenu && (
-                <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
-                  <button
-                    onClick={handleExportPDF}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
-                  >
-                    Export as PDF
-                  </button>
-                  <button
-                    onClick={handleExportImage}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
-                  >
-                    Export as Image
-                  </button>
-                </div>
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowExportMenu(false)} />
+                  <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
+                    <button
+                      onClick={handleExportPDF}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
+                    >
+                      Export as PDF
+                    </button>
+                    <button
+                      onClick={handleExportImage}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
+                    >
+                      Export as Image
+                    </button>
+                  </div>
+                </>
               )}
             </div>
 
-            {/* Save Button with dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSaveMenu(!showSaveMenu)}
-                disabled={saveStatus === 'saving'}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  saveStatus === 'saved'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-sap-blue text-white hover:bg-blue-700'
-                }`}
-              >
-                {saveStatus === 'saving' ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : saveStatus === 'saved' ? (
-                  <>
-                    <Check size={18} />
-                    Saved
-                  </>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    Save
-                  </>
-                )}
-              </button>
-              {showSaveMenu && saveStatus === 'idle' && (
-                <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
-                  <button
-                    onClick={openSaveDialog}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={openSaveAsDialog}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white"
-                  >
-                    Save As...
-                  </button>
-                </div>
+            {/* Save Button */}
+            <button
+              onClick={handleSaveStory}
+              disabled={saveStatus === 'saving'}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                saveStatus === 'saved'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-sap-blue text-white hover:bg-blue-700'
+              }`}
+            >
+              {saveStatus === 'saving' ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : saveStatus === 'saved' ? (
+                <>
+                  <Check size={18} />
+                  Saved
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  Save
+                </>
               )}
-            </div>
+            </button>
 
             {/* Add Widget Button */}
             <button
@@ -561,7 +420,7 @@ export const StoryEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters - Now dynamic based on model */}
+      {/* Filters */}
       <div className="p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <FilterBar filters={filters} onFilterChange={applyFilter} onResetAll={resetFilters} />
       </div>
@@ -578,47 +437,45 @@ export const StoryEditor: React.FC = () => {
           </button>
           <div className="flex items-center gap-1">
             {activeStory.pages.map((page, index) => (
-              <div key={page.id} className="relative">
+              <div key={page.id} className="relative flex items-center">
                 <button
                   onClick={() => setActivePageIndex(index)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setShowPageMenu(page.id);
-                  }}
-                  className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded text-sm ${
                     index === activePageIndex
                       ? 'bg-sap-blue text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
                   }`}
                 >
                   {page.title}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowPageMenu(showPageMenu === page.id ? null : page.id);
-                    }}
-                    className="ml-1 p-0.5 rounded hover:bg-black/10"
-                  >
-                    <MoreVertical size={12} />
-                  </button>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPageMenu(showPageMenu === page.id ? null : page.id);
+                  }}
+                  className="ml-1 p-0.5 rounded hover:bg-black/10"
+                >
+                  <MoreVertical size={12} className="dark:text-gray-400" />
                 </button>
 
-                {/* Page Menu */}
                 {showPageMenu === page.id && (
-                  <div className="absolute top-8 left-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[120px]">
-                    <button
-                      onClick={() => handleDeletePage(page.id)}
-                      disabled={activeStory.pages.length <= 1}
-                      className={`w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 ${
-                        activeStory.pages.length <= 1
-                          ? 'text-gray-300 dark:text-gray-500 cursor-not-allowed'
-                          : 'text-red-500 hover:bg-red-50 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      <Trash2 size={14} />
-                      Delete Page
-                    </button>
-                  </div>
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowPageMenu(null)} />
+                    <div className="absolute top-8 left-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[120px]">
+                      <button
+                        onClick={() => handleDeletePage(page.id)}
+                        disabled={activeStory.pages.length <= 1}
+                        className={`w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 ${
+                          activeStory.pages.length <= 1
+                            ? 'text-gray-300 dark:text-gray-500 cursor-not-allowed'
+                            : 'text-red-500 hover:bg-red-50 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <Trash2 size={14} />
+                        Delete Page
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             ))}
@@ -675,24 +532,17 @@ export const StoryEditor: React.FC = () => {
         {currentPage && currentPage.widgets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {currentPage.widgets.map((widget) => (
-              <div key={widget.id} className="relative group">
-                <WidgetRenderer
-                  widget={widget}
-                  onEdit={() => handleEditWidget(widget)}
-                  onDuplicate={() => handleDuplicateWidget(widget.id)}
-                  onDelete={() => handleDeleteWidget(widget.id)}
-                />
-                {/* Copy to Page Button */}
-                {activeStory.pages.length > 1 && (
-                  <button
-                    onClick={() => setCopyToPageWidget(widget.id)}
-                    className="absolute top-2 right-24 p-1.5 bg-white dark:bg-gray-700 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-600"
-                    title="Copy to another page"
-                  >
-                    <Copy size={14} className="text-gray-500 dark:text-gray-400" />
-                  </button>
-                )}
-              </div>
+              <WidgetRenderer
+                key={widget.id}
+                widget={widget}
+                onEdit={() => handleEditWidget(widget)}
+                onDuplicate={() => handleDuplicateWidget(widget.id)}
+                onDelete={() => handleDeleteWidget(widget.id)}
+                onCopyToPage={(pageId) => handleCopyToPage(widget.id, pageId)}
+                onCopyToNewPage={() => handleCopyToNewPage(widget.id)}
+                availablePages={availablePages}
+                currentPageId={currentPage.id}
+              />
             ))}
           </div>
         ) : (
@@ -724,19 +574,6 @@ export const StoryEditor: React.FC = () => {
         )}
       </div>
 
-      {/* Close menus when clicking outside */}
-      {(showPageMenu || showExportMenu || showSaveMenu || showModelMenu) && (
-        <div 
-          className="fixed inset-0 z-10" 
-          onClick={() => {
-            setShowPageMenu(null);
-            setShowExportMenu(false);
-            setShowSaveMenu(false);
-            setShowModelMenu(false);
-          }}
-        />
-      )}
-
       {/* Modals and Panels */}
       <EditWidgetModal
         isOpen={isWidgetModalOpen}
@@ -762,27 +599,6 @@ export const StoryEditor: React.FC = () => {
       <BookmarksPanel
         isOpen={isBookmarksPanelOpen}
         onClose={() => setIsBookmarksPanelOpen(false)}
-      />
-
-      <SaveDialog
-        isOpen={isSaveDialogOpen}
-        onClose={() => setIsSaveDialogOpen(false)}
-        onSave={isSaveAsDialog ? handleSaveAsStory : (title) => handleSaveStory(title)}
-        currentTitle={activeStory.title}
-        currentDescription={activeStory.description}
-        isSaveAs={isSaveAsDialog}
-      />
-
-      <CopyToPageDialog
-        isOpen={copyToPageWidget !== null}
-        onClose={() => setCopyToPageWidget(null)}
-        onCopy={(pageId) => {
-          if (copyToPageWidget) {
-            handleCopyToPage(copyToPageWidget, pageId);
-          }
-        }}
-        pages={activeStory.pages}
-        currentPageId={currentPage?.id || ''}
       />
     </div>
   );

@@ -1,7 +1,6 @@
-import { KPI, Story, Filter, DataRow, Dimension, Measure, DataModel, StoryTemplate, SmartInsight } from '../types';
+import { Story, Filter, DataRow, Dimension, Measure, DataModel, StoryTemplate, SmartInsight } from '../types';
 
 export const rawData: DataRow[] = [
-  // 2024 Data with Plan and Previous Year
   { id: '1', region: 'North America', product: 'Product A', year: '2024', month: 'Jan', revenue: 186000, costs: 120000, profit: 66000, quantity: 450, plan_revenue: 180000, plan_costs: 115000, plan_profit: 65000, previous_year_revenue: 165000, latitude: 40.7128, longitude: -74.0060 },
   { id: '2', region: 'North America', product: 'Product B', year: '2024', month: 'Jan', revenue: 145000, costs: 95000, profit: 50000, quantity: 380, plan_revenue: 140000, plan_costs: 90000, plan_profit: 50000, previous_year_revenue: 128000, latitude: 40.7128, longitude: -74.0060 },
   { id: '3', region: 'North America', product: 'Product C', year: '2024', month: 'Jan', revenue: 125000, costs: 82000, profit: 43000, quantity: 320, plan_revenue: 120000, plan_costs: 80000, plan_profit: 40000, previous_year_revenue: 108000, latitude: 40.7128, longitude: -74.0060 },
@@ -14,8 +13,6 @@ export const rawData: DataRow[] = [
   { id: '10', region: 'North America', product: 'Product A', year: '2024', month: 'Apr', revenue: 245000, costs: 135000, profit: 110000, quantity: 600, plan_revenue: 230000, plan_costs: 130000, plan_profit: 100000, previous_year_revenue: 210000, latitude: 40.7128, longitude: -74.0060 },
   { id: '11', region: 'North America', product: 'Product B', year: '2024', month: 'Apr', revenue: 185000, costs: 118000, profit: 67000, quantity: 460, plan_revenue: 175000, plan_costs: 112000, plan_profit: 63000, previous_year_revenue: 162000, latitude: 40.7128, longitude: -74.0060 },
   { id: '12', region: 'North America', product: 'Product C', year: '2024', month: 'Apr', revenue: 162000, costs: 105000, profit: 57000, quantity: 405, plan_revenue: 155000, plan_costs: 100000, plan_profit: 55000, previous_year_revenue: 140000, latitude: 40.7128, longitude: -74.0060 },
-  
-  // Europe Data
   { id: '13', region: 'Europe', product: 'Product A', year: '2024', month: 'Jan', revenue: 156000, costs: 100000, profit: 56000, quantity: 390, plan_revenue: 150000, plan_costs: 98000, plan_profit: 52000, previous_year_revenue: 142000, latitude: 51.5074, longitude: -0.1278 },
   { id: '14', region: 'Europe', product: 'Product B', year: '2024', month: 'Jan', revenue: 132000, costs: 88000, profit: 44000, quantity: 330, plan_revenue: 128000, plan_costs: 85000, plan_profit: 43000, previous_year_revenue: 118000, latitude: 51.5074, longitude: -0.1278 },
   { id: '15', region: 'Europe', product: 'Product C', year: '2024', month: 'Jan', revenue: 118000, costs: 78000, profit: 40000, quantity: 295, plan_revenue: 115000, plan_costs: 75000, plan_profit: 40000, previous_year_revenue: 102000, latitude: 51.5074, longitude: -0.1278 },
@@ -28,8 +25,6 @@ export const rawData: DataRow[] = [
   { id: '22', region: 'Europe', product: 'Product A', year: '2024', month: 'Apr', revenue: 210000, costs: 125000, profit: 85000, quantity: 525, plan_revenue: 198000, plan_costs: 118000, plan_profit: 80000, previous_year_revenue: 188000, latitude: 51.5074, longitude: -0.1278 },
   { id: '23', region: 'Europe', product: 'Product B', year: '2024', month: 'Apr', revenue: 175000, costs: 110000, profit: 65000, quantity: 438, plan_revenue: 168000, plan_costs: 105000, plan_profit: 63000, previous_year_revenue: 158000, latitude: 51.5074, longitude: -0.1278 },
   { id: '24', region: 'Europe', product: 'Product C', year: '2024', month: 'Apr', revenue: 155000, costs: 100000, profit: 55000, quantity: 388, plan_revenue: 150000, plan_costs: 96000, plan_profit: 54000, previous_year_revenue: 138000, latitude: 51.5074, longitude: -0.1278 },
-  
-  // Asia Pacific Data
   { id: '25', region: 'Asia Pacific', product: 'Product A', year: '2024', month: 'Jan', revenue: 120000, costs: 78000, profit: 42000, quantity: 300, plan_revenue: 115000, plan_costs: 75000, plan_profit: 40000, previous_year_revenue: 105000, latitude: 35.6762, longitude: 139.6503 },
   { id: '26', region: 'Asia Pacific', product: 'Product B', year: '2024', month: 'Jan', revenue: 98000, costs: 65000, profit: 33000, quantity: 245, plan_revenue: 95000, plan_costs: 62000, plan_profit: 33000, previous_year_revenue: 88000, latitude: 35.6762, longitude: 139.6503 },
   { id: '27', region: 'Asia Pacific', product: 'Product C', year: '2024', month: 'Jan', revenue: 85000, costs: 58000, profit: 27000, quantity: 212, plan_revenue: 82000, plan_costs: 55000, plan_profit: 27000, previous_year_revenue: 75000, latitude: 35.6762, longitude: 139.6503 },
@@ -42,8 +37,6 @@ export const rawData: DataRow[] = [
   { id: '34', region: 'Asia Pacific', product: 'Product A', year: '2024', month: 'Apr', revenue: 168000, costs: 98000, profit: 70000, quantity: 420, plan_revenue: 158000, plan_costs: 94000, plan_profit: 64000, previous_year_revenue: 148000, latitude: 35.6762, longitude: 139.6503 },
   { id: '35', region: 'Asia Pacific', product: 'Product B', year: '2024', month: 'Apr', revenue: 142000, costs: 88000, profit: 54000, quantity: 355, plan_revenue: 135000, plan_costs: 85000, plan_profit: 50000, previous_year_revenue: 125000, latitude: 35.6762, longitude: 139.6503 },
   { id: '36', region: 'Asia Pacific', product: 'Product C', year: '2024', month: 'Apr', revenue: 118000, costs: 75000, profit: 43000, quantity: 295, plan_revenue: 112000, plan_costs: 72000, plan_profit: 40000, previous_year_revenue: 105000, latitude: 35.6762, longitude: 139.6503 },
-  
-  // Latin America Data
   { id: '37', region: 'Latin America', product: 'Product A', year: '2024', month: 'Jan', revenue: 85000, costs: 55000, profit: 30000, quantity: 212, plan_revenue: 82000, plan_costs: 53000, plan_profit: 29000, previous_year_revenue: 72000, latitude: -23.5505, longitude: -46.6333 },
   { id: '38', region: 'Latin America', product: 'Product B', year: '2024', month: 'Jan', revenue: 72000, costs: 48000, profit: 24000, quantity: 180, plan_revenue: 70000, plan_costs: 46000, plan_profit: 24000, previous_year_revenue: 62000, latitude: -23.5505, longitude: -46.6333 },
   { id: '39', region: 'Latin America', product: 'Product C', year: '2024', month: 'Jan', revenue: 62000, costs: 42000, profit: 20000, quantity: 155, plan_revenue: 60000, plan_costs: 40000, plan_profit: 20000, previous_year_revenue: 52000, latitude: -23.5505, longitude: -46.6333 },
@@ -58,7 +51,6 @@ export const rawData: DataRow[] = [
   { id: '48', region: 'Latin America', product: 'Product C', year: '2024', month: 'Apr', revenue: 88000, costs: 56000, profit: 32000, quantity: 220, plan_revenue: 85000, plan_costs: 54000, plan_profit: 31000, previous_year_revenue: 75000, latitude: -23.5505, longitude: -46.6333 },
 ];
 
-// Additional data for other models
 export const customerData = [
   { customerId: 'C001', customerName: 'Acme Corp', segment: 'Enterprise', industry: 'Technology', country: 'USA', ltv: 250000, totalOrders: 45, avgOrderValue: 5500, churnRisk: 0.12 },
   { customerId: 'C002', customerName: 'Global Tech', segment: 'Enterprise', industry: 'Technology', country: 'UK', ltv: 180000, totalOrders: 32, avgOrderValue: 5600, churnRisk: 0.08 },
@@ -111,10 +103,10 @@ export const supplyChainData = [
 ];
 
 export const availableDimensions: Dimension[] = [
-  { id: 'dim1', name: 'Region', field: 'region', values: ['North America', 'Europe', 'Asia Pacific', 'Latin America'], hierarchy: ['Global', 'Region', 'Country', 'City'] },
-  { id: 'dim2', name: 'Product', field: 'product', values: ['Product A', 'Product B', 'Product C'], hierarchy: ['Category', 'Product', 'SKU'] },
-  { id: 'dim3', name: 'Year', field: 'year', values: ['2024', '2023'], hierarchy: ['Year', 'Quarter', 'Month', 'Week'] },
-  { id: 'dim4', name: 'Month', field: 'month', values: ['Jan', 'Feb', 'Mar', 'Apr'], hierarchy: ['Month', 'Week', 'Day'] },
+  { id: 'dim1', name: 'Region', field: 'region', values: ['North America', 'Europe', 'Asia Pacific', 'Latin America'] },
+  { id: 'dim2', name: 'Product', field: 'product', values: ['Product A', 'Product B', 'Product C'] },
+  { id: 'dim3', name: 'Year', field: 'year', values: ['2024', '2023'] },
+  { id: 'dim4', name: 'Month', field: 'month', values: ['Jan', 'Feb', 'Mar', 'Apr'] },
 ];
 
 export const availableMeasures: Measure[] = [
@@ -134,7 +126,6 @@ export const smartInsights: SmartInsight[] = [
   { id: 'insight3', type: 'correlation', title: 'Product A Drives Profit', description: 'Product A contributes 45% of total profit.', confidence: 0.95, relatedDimension: 'product', relatedMeasure: 'profit', timestamp: new Date().toISOString() },
 ];
 
-// Model-specific configurations
 export const modelConfigs: { [key: string]: { dimensions: Dimension[], measures: Measure[], filters: Filter[], data: any[] } } = {
   'model1': {
     dimensions: availableDimensions,
@@ -252,14 +243,271 @@ export const dataModels: DataModel[] = [
   { id: 'model6', name: 'Supply Chain', description: 'Supplier performance, procurement, and logistics data', type: 'live', source: 'SAP Ariba', columns: [], lastRefresh: '2024-01-20 11:00:00', rowCount: 6 },
 ];
 
-export const storyTemplates: StoryTemplate[] = [
-  { id: 'template1', name: 'Executive Dashboard', description: 'High-level KPIs and trends', thumbnail: '📊', category: 'Finance', pages: [{ id: 'tp1', title: 'Overview', widgets: [] }] },
-  { id: 'template2', name: 'Sales Analysis', description: 'Detailed sales performance', thumbnail: '📈', category: 'Sales', pages: [{ id: 'tp1', title: 'Sales', widgets: [] }] },
-  { id: 'template3', name: 'Variance Analysis', description: 'Actual vs Plan comparison', thumbnail: '📉', category: 'Finance', pages: [{ id: 'tp1', title: 'Variance', widgets: [] }] },
-  { id: 'template4', name: 'Blank Canvas', description: 'Start from scratch', thumbnail: '📄', category: 'General', pages: [{ id: 'tp1', title: 'Page 1', widgets: [] }] },
+// Pre-built widgets for templates
+const executiveWidgets = [
+  {
+    id: 'exec-w1',
+    type: 'kpi' as const,
+    title: 'Total Revenue',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'exec-w2',
+    type: 'chart' as const,
+    chartType: 'column' as const,
+    title: 'Revenue by Region',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'exec-w3',
+    type: 'chart' as const,
+    chartType: 'line' as const,
+    title: 'Revenue Trend',
+    dimensions: [{ id: 'dim4', name: 'Month', field: 'month' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'exec-w4',
+    type: 'chart' as const,
+    chartType: 'pie' as const,
+    title: 'Revenue by Product',
+    dimensions: [{ id: 'dim2', name: 'Product', field: 'product' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  }
 ];
 
-export const kpis: KPI[] = [
+const salesWidgets = [
+  {
+    id: 'sales-w1',
+    type: 'chart' as const,
+    chartType: 'column' as const,
+    title: 'Sales by Region',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [
+      { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+      { id: 'meas3', name: 'Profit', field: 'profit', aggregation: 'sum' as const, color: '#36a41d', format: 'currency' as const }
+    ],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'sales-w2',
+    type: 'chart' as const,
+    chartType: 'line' as const,
+    title: 'Monthly Sales Trend',
+    dimensions: [{ id: 'dim4', name: 'Month', field: 'month' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'sales-w3',
+    type: 'table' as const,
+    title: 'Sales Details',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }, { id: 'dim2', name: 'Product', field: 'product' }],
+    measures: [
+      { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+      { id: 'meas2', name: 'Costs', field: 'costs', aggregation: 'sum' as const, color: '#df6e0c', format: 'currency' as const },
+      { id: 'meas3', name: 'Profit', field: 'profit', aggregation: 'sum' as const, color: '#36a41d', format: 'currency' as const }
+    ],
+    filters: [],
+    linkedAnalysis: true
+  },
+  {
+    id: 'sales-w4',
+    type: 'chart' as const,
+    chartType: 'stacked' as const,
+    title: 'Product Mix by Region',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  }
+];
+
+const varianceWidgets = [
+  {
+    id: 'var-w1',
+    type: 'chart' as const,
+    chartType: 'column' as const,
+    title: 'Actual vs Plan by Region',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [
+      { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+      { id: 'meas5', name: 'Plan Revenue', field: 'plan_revenue', aggregation: 'sum' as const, color: '#00b4f0', format: 'currency' as const }
+    ],
+    filters: [],
+    linkedAnalysis: true,
+    variance: {
+      enabled: true,
+      compareType: 'plan' as const,
+      showAbsolute: true,
+      showPercentage: true
+    }
+  },
+  {
+    id: 'var-w2',
+    type: 'table' as const,
+    title: 'Variance Analysis',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [
+      { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+      { id: 'meas5', name: 'Plan Revenue', field: 'plan_revenue', aggregation: 'sum' as const, color: '#00b4f0', format: 'currency' as const }
+    ],
+    filters: [],
+    linkedAnalysis: true,
+    variance: {
+      enabled: true,
+      compareType: 'plan' as const,
+      compareMeasure: 'plan_revenue',
+      showAbsolute: true,
+      showPercentage: true
+    }
+  },
+  {
+    id: 'var-w3',
+    type: 'chart' as const,
+    chartType: 'waterfall' as const,
+    title: 'Revenue Variance Waterfall',
+    dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+    measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+    filters: [],
+    linkedAnalysis: true
+  }
+];
+
+export const storyTemplates: StoryTemplate[] = [
+  { 
+    id: 'template1', 
+    name: 'Executive Dashboard', 
+    description: 'High-level KPIs and trends', 
+    category: 'Finance', 
+    pages: [
+      { 
+        id: 'exec-p1', 
+        title: 'Overview', 
+        widgets: executiveWidgets,
+        linkedAnalysis: true
+      },
+      {
+        id: 'exec-p2',
+        title: 'Details',
+        widgets: [
+          {
+            id: 'exec-w5',
+            type: 'table' as const,
+            title: 'Revenue Details by Region',
+            dimensions: [{ id: 'dim1', name: 'Region', field: 'region' }],
+            measures: [
+              { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+              { id: 'meas3', name: 'Profit', field: 'profit', aggregation: 'sum' as const, color: '#36a41d', format: 'currency' as const }
+            ],
+            filters: [],
+            linkedAnalysis: true
+          }
+        ],
+        linkedAnalysis: true
+      }
+    ] 
+  },
+  { 
+    id: 'template2', 
+    name: 'Sales Analysis', 
+    description: 'Detailed sales performance', 
+    category: 'Sales', 
+    pages: [
+      { 
+        id: 'sales-p1', 
+        title: 'Sales Overview', 
+        widgets: salesWidgets.slice(0, 2),
+        linkedAnalysis: true
+      },
+      {
+        id: 'sales-p2',
+        title: 'Product Analysis',
+        widgets: salesWidgets.slice(2),
+        linkedAnalysis: true
+      },
+      {
+        id: 'sales-p3',
+        title: 'Regional Breakdown',
+        widgets: [
+          {
+            id: 'sales-w5',
+            type: 'chart' as const,
+            chartType: 'bar' as const,
+            title: 'Top Products by Revenue',
+            dimensions: [{ id: 'dim2', name: 'Product', field: 'product' }],
+            measures: [{ id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const }],
+            filters: [],
+            linkedAnalysis: true
+          }
+        ],
+        linkedAnalysis: true
+      }
+    ] 
+  },
+  { 
+    id: 'template3', 
+    name: 'Variance Analysis', 
+    description: 'Actual vs Plan comparison', 
+    category: 'Finance', 
+    pages: [
+      { 
+        id: 'var-p1', 
+        title: 'Variance Overview', 
+        widgets: varianceWidgets,
+        linkedAnalysis: true
+      },
+      {
+        id: 'var-p2',
+        title: 'Detailed Variance',
+        widgets: [
+          {
+            id: 'var-w4',
+            type: 'chart' as const,
+            chartType: 'column' as const,
+            title: 'Product Variance',
+            dimensions: [{ id: 'dim2', name: 'Product', field: 'product' }],
+            measures: [
+              { id: 'meas1', name: 'Revenue', field: 'revenue', aggregation: 'sum' as const, color: '#0a6ed1', format: 'currency' as const },
+              { id: 'meas5', name: 'Plan Revenue', field: 'plan_revenue', aggregation: 'sum' as const, color: '#00b4f0', format: 'currency' as const }
+            ],
+            filters: [],
+            linkedAnalysis: true
+          }
+        ],
+        linkedAnalysis: true
+      }
+    ] 
+  },
+  { 
+    id: 'template4', 
+    name: 'Blank Canvas', 
+    description: 'Start from scratch', 
+    category: 'General', 
+    pages: [
+      { 
+        id: 'blank-p1', 
+        title: 'Page 1', 
+        widgets: [],
+        linkedAnalysis: true
+      }
+    ] 
+  },
+];
+
+export const kpis = [
   { id: '1', title: 'Total Revenue', value: 2450000, unit: '$', trend: 'up', change: 12.5 },
   { id: '2', title: 'Gross Margin', value: 34.2, unit: '%', trend: 'up', change: 2.1 },
   { id: '3', title: 'Operating Costs', value: 890000, unit: '$', trend: 'down', change: -5.3 },
@@ -267,9 +515,9 @@ export const kpis: KPI[] = [
 ];
 
 export const defaultStories: Story[] = [
-  { id: '1', title: 'Q4 Financial Overview', description: 'Quarterly financial performance analysis', createdAt: '2024-01-15', updatedAt: '2024-01-15', author: 'John Doe', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Overview', widgets: [], linkedAnalysis: true }] },
-  { id: '2', title: 'Sales Performance Dashboard', description: 'Regional sales metrics and KPIs', createdAt: '2024-01-10', updatedAt: '2024-01-10', author: 'Jane Smith', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Sales', widgets: [], linkedAnalysis: true }] },
-  { id: '3', title: 'Cost Analysis Report', description: 'Operating cost breakdown', createdAt: '2024-01-08', updatedAt: '2024-01-08', author: 'Mike Johnson', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Costs', widgets: [] }] },
+  { id: '1', title: 'Q4 Financial Overview', description: 'Quarterly financial performance analysis', createdAt: '2024-01-15', updatedAt: '2024-01-15', author: 'John Doe', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Overview', widgets: executiveWidgets, linkedAnalysis: true }] },
+  { id: '2', title: 'Sales Performance Dashboard', description: 'Regional sales metrics and KPIs', createdAt: '2024-01-10', updatedAt: '2024-01-10', author: 'Jane Smith', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Sales', widgets: salesWidgets.slice(0, 2), linkedAnalysis: true }] },
+  { id: '3', title: 'Cost Analysis Report', description: 'Operating cost breakdown', createdAt: '2024-01-08', updatedAt: '2024-01-08', author: 'Mike Johnson', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Costs', widgets: varianceWidgets.slice(0, 2) }] },
 ];
 
 export const filters: Filter[] = [

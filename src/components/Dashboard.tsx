@@ -1,106 +1,123 @@
 import React, { useState } from 'react';
 import { KPICard } from './KPICard';
 import { FilterBar } from './FilterBar';
-import { RevenueChart, RegionPieChart, ProductBarChart } from './Charts';
+import { Chart } from './Charts';
 import { StoryList } from './StoryList';
 import { TemplateSelector } from './TemplateSelector';
 import { StoryEditor } from './StoryEditor';
 import { useData } from '../context/DataContext';
+import { Plus } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { 
+    stories, 
     filters, 
     applyFilter, 
+    resetFilters,
     activeStory, 
     setActiveStory,
-    stories,
-    deleteStory,
-    getMultiMeasureData,
-    filteredData
+    setActivePageIndex,
+    getAggregatedData
   } = useData();
+  
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
 
-  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
-
+  // If there's an active story, show the editor
   if (activeStory) {
     return <StoryEditor />;
   }
 
-  const totalRevenue = filteredData.reduce((sum, row) => sum + row.revenue, 0);
-  const totalCosts = filteredData.reduce((sum, row) => sum + row.costs, 0);
-  const totalProfit = filteredData.reduce((sum, row) => sum + row.profit, 0);
-  const totalQuantity = filteredData.reduce((sum, row) => sum + row.quantity, 0);
+  const handleOpenStory = (storyId: string) => {
+    const story = stories.find(s => s.id === storyId);
+    if (story) {
+      setActiveStory(story);
+      setActivePageIndex(0);
+    }
+  };
+
+  const handleCreateStory = () => {
+    setIsTemplateOpen(true);
+  };
+
+  // Get chart data
+  const revenueByMonth = getAggregatedData('month', 'revenue');
+  const revenueByRegion = getAggregatedData('region', 'revenue');
+  const revenueByProduct = getAggregatedData('product', 'revenue');
+
+  // Calculate KPIs
+  const totalRevenue = revenueByMonth.reduce((sum, item) => sum + item.value, 0);
+  const totalProfit = getAggregatedData('month', 'profit').reduce((sum, item) => sum + item.value, 0);
+  const totalCosts = getAggregatedData('month', 'costs').reduce((sum, item) => sum + item.value, 0);
+  const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
   const kpis = [
     { id: '1', title: 'Total Revenue', value: totalRevenue, unit: '$', trend: 'up' as const, change: 12.5 },
-    { id: '2', title: 'Gross Margin', value: totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0, unit: '%', trend: 'up' as const, change: 2.1 },
-    { id: '3', title: 'Operating Costs', value: totalCosts, unit: '$', trend: 'down' as const, change: -5.3 },
-    { id: '4', title: 'Total Quantity', value: totalQuantity, unit: '', trend: 'up' as const, change: 8.7 },
+    { id: '2', title: 'Total Profit', value: totalProfit, unit: '$', trend: 'up' as const, change: 8.3 },
+    { id: '3', title: 'Total Costs', value: totalCosts, unit: '$', trend: 'down' as const, change: -3.2 },
+    { id: '4', title: 'Profit Margin', value: profitMargin, unit: '%', trend: 'up' as const, change: 2.1 },
   ];
 
-  const monthlyData = getMultiMeasureData('month', ['revenue', 'costs', 'profit']).map(item => ({
-    name: item.name,
-    revenue: item.revenue,
-    costs: item.costs,
-    profit: item.profit,
-    value: item.revenue
-  }));
-
-  const regionData = getMultiMeasureData('region', ['revenue']).map(item => {
-    const total = filteredData.reduce((sum, r) => sum + r.revenue, 0);
-    return {
-      name: item.name,
-      value: total > 0 ? Math.round((item.revenue / total) * 100) : 0
-    };
-  });
-
-  const productData = getMultiMeasureData('product', ['revenue']).map(item => ({
-    name: item.name,
-    sales: item.revenue,
-    target: item.revenue * 1.1,
-    value: item.revenue
-  }));
-
   return (
-    <div className="p-6 space-y-6 bg-gray-100 dark:bg-gray-900 min-h-full">
-      <div className="flex justify-between items-center">
+    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-sap-dark dark:text-white">Dashboard Overview</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Welcome back! Here's what's happening with your data.</p>
+          <h1 className="text-2xl font-bold text-sap-dark dark:text-white">Stories</h1>
+          <p className="text-gray-500 dark:text-gray-400">Create and manage your analytics stories</p>
         </div>
-        <button 
-          onClick={() => setIsTemplateSelectorOpen(true)}
-          className="bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        <button
+          onClick={handleCreateStory}
+          className="flex items-center gap-2 bg-sap-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          + Create Story
+          <Plus size={20} />
+          Create Story
         </button>
       </div>
 
-      <FilterBar filters={filters} onFilterChange={applyFilter} />
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+        <FilterBar filters={filters} onFilterChange={applyFilter} onResetAll={resetFilters} />
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi) => (
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {kpis.map(kpi => (
           <KPICard key={kpi.id} kpi={kpi} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart data={monthlyData} title="Revenue Trend" />
-        <RegionPieChart data={regionData} title="Revenue by Region" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ProductBarChart data={productData} title="Product Performance" />
-        <StoryList 
-          stories={stories} 
-          onStoryClick={setActiveStory}
-          onDelete={deleteStory}
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <Chart 
+          data={revenueByMonth} 
+          type="line" 
+          title="Revenue Trend by Month" 
+        />
+        <Chart 
+          data={revenueByRegion} 
+          type="pie" 
+          title="Revenue by Region" 
         />
       </div>
 
-      <TemplateSelector
-        isOpen={isTemplateSelectorOpen}
-        onClose={() => setIsTemplateSelectorOpen(false)}
-      />
+      <div className="mb-6">
+        <Chart 
+          data={revenueByProduct} 
+          type="bar" 
+          title="Revenue by Product" 
+        />
+      </div>
+
+      {/* Story List */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-4 border-b dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-sap-dark dark:text-white">Your Stories</h2>
+        </div>
+        <StoryList stories={stories} onOpenStory={handleOpenStory} />
+      </div>
+
+      {/* Template Selector Modal */}
+      <TemplateSelector isOpen={isTemplateOpen} onClose={() => setIsTemplateOpen(false)} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, TrendingUp, TrendingDown, AlertTriangle, BarChart2, X, ChevronRight, Lightbulb, RefreshCw } from 'lucide-react';
+import { Sparkles, TrendingUp, TrendingDown, AlertTriangle, BarChart2, X, ChevronRight, Lightbulb, RefreshCw, GitBranch, Zap } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { SmartInsight } from '../types';
 
@@ -18,9 +18,9 @@ export const SmartInsightsPanel: React.FC<SmartInsightsPanelProps> = ({ isOpen, 
     switch (type) {
       case 'trend': return <TrendingUp size={18} className="text-blue-500" />;
       case 'anomaly': return <AlertTriangle size={18} className="text-orange-500" />;
-      case 'correlation': return <BarChart2 size={18} className="text-purple-500" />;
-      case 'forecast': return <Lightbulb size={18} className="text-green-500" />;
-      default: return <Sparkles size={18} className="text-sap-blue" />;
+      case 'correlation': return <GitBranch size={18} className="text-purple-500" />;
+      case 'forecast': return <Zap size={18} className="text-green-500" />;
+      default: return <Lightbulb size={18} className="text-sap-blue" />;
     }
   };
 
@@ -41,7 +41,6 @@ export const SmartInsightsPanel: React.FC<SmartInsightsPanelProps> = ({ isOpen, 
 
   const handleApplyInsight = (insight: SmartInsight) => {
     if (insight.relatedDimension) {
-      // Apply filter based on insight
       const filterId = insight.relatedDimension === 'region' ? '2' : 
                        insight.relatedDimension === 'product' ? '3' : '1';
       
@@ -60,7 +59,6 @@ export const SmartInsightsPanel: React.FC<SmartInsightsPanelProps> = ({ isOpen, 
     setSelectedInsight(insight);
   };
 
-  // Generate dynamic insights based on data
   const generateDynamicInsights = (): SmartInsight[] => {
     const totalRevenue = filteredData.reduce((sum, row) => sum + row.revenue, 0);
     const totalProfit = filteredData.reduce((sum, row) => sum + row.profit, 0);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Story, Filter, DataRow, Dimension, Measure, Widget, DataModel, SearchResult, StoryTemplate, WidgetFilter, Bookmark, SmartInsight, NLPQuery } from '../types';
+import { Story, Filter, Dimension, Measure, Widget, DataModel, SearchResult, StoryTemplate, WidgetFilter, Bookmark, SmartInsight, NLPQuery, Page } from '../types';
 import { rawData, defaultStories, filters as initialFilters, availableDimensions, availableMeasures, dataModels, storyTemplates, smartInsights, modelConfigs } from '../data/mockData';
 
 interface DataContextType {
@@ -30,8 +30,8 @@ interface DataContextType {
   saveStoryAs: (storyId: string, newTitle: string, newDescription: string) => void;
   addPageToStory: (storyId: string, pageTitle: string) => void;
   deletePageFromStory: (storyId: string, pageId: string) => void;
-  addWidgetToPage: (storyId: string, pageId: string, widget: any) => void;
-  updateWidget: (storyId: string, pageId: string, widgetId: string, widget: any) => void;
+  addWidgetToPage: (storyId: string, pageId: string, widget: Widget) => void;
+  updateWidget: (storyId: string, pageId: string, widgetId: string, widget: Widget) => void;
   duplicateWidget: (storyId: string, pageId: string, widgetId: string) => void;
   copyWidgetToPage: (storyId: string, fromPageId: string, widgetId: string, toPageId: string) => void;
   deleteWidget: (storyId: string, pageId: string, widgetId: string) => void;
@@ -80,38 +80,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilter[]>([]);
   const [linkedAnalysisEnabled, setLinkedAnalysisEnabled] = useState(true);
 
-  // Get current model configuration
   const currentModelConfig = modelConfigs[selectedModelId] || modelConfigs['model1'];
   const selectedModel = dataModels.find(m => m.id === selectedModelId) || dataModels[0];
   const selectedModelDimensions = currentModelConfig.dimensions;
   const selectedModelMeasures = currentModelConfig.measures;
   const data = currentModelConfig.data;
 
-  // Update filters when model changes
   useEffect(() => {
     const modelFilters = currentModelConfig.filters.map(f => ({ ...f, selected: 'All' }));
     setFilters(modelFilters);
     setWidgetFilters([]);
   }, [selectedModelId]);
 
-  // Filter data based on current filters
+  useEffect(() => {
+    const savedStories = stories.filter(s => s.isSaved);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedStories));
+  }, [stories]);
+
   const filteredData = data.filter((row: any) => {
     // Apply global filters
     for (const filter of filters) {
       if (filter.selected !== 'All') {
-        const field = filter.label.toLowerCase().replace(' ', '');
-        // Find matching field in row
+        const field = filter.label.toLowerCase().replace(/\s+/g, '');
         const matchingField = Object.keys(row).find(
           key => key.toLowerCase() === field || 
+                 key.toLowerCase() === filter.label.toLowerCase() ||
                  key.toLowerCase().includes(filter.label.toLowerCase().split(' ')[0].toLowerCase())
         );
-        if (matchingField && row[matchingField] !== filter.selected) {
+        if (matchingField && String(row[matchingField]) !== filter.selected) {
           return false;
         }
       }
     }
 
-    // Apply widget filters (linked analysis)
+    // Apply widget filters only if linked analysis is enabled
     if (linkedAnalysisEnabled) {
       for (const wf of widgetFilters) {
         const rowValue = row[wf.field];
@@ -125,13 +127,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   const applyFilter = (filterId: string, value: string) => {
-    setFilters(filters.map(f => 
+    setFilters(prev => prev.map(f => 
       f.id === filterId ? { ...f, selected: value } : f
     ));
   };
 
   const resetFilters = () => {
-    setFilters(filters.map(f => ({ ...f, selected: 'All' })));
+    setFilters(prev => prev.map(f => ({ ...f, selected: 'All' })));
     setWidgetFilters([]);
   };
 
@@ -154,7 +156,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const toggleLinkedAnalysis = () => {
-    setLinkedAnalysisEnabled(!linkedAnalysisEnabled);
+    setLinkedAnalysisEnabled(prev => !prev);
     if (linkedAnalysisEnabled) {
       clearWidgetFilters();
     }
@@ -201,6 +203,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updatedAt: new Date().toISOString().split('T')[0],
       author: 'Current User',
       isSaved: false,
+      isFavorite: false,
       tags: [],
       version: 1,
       bookmarks: [],
@@ -220,6 +223,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const createStoryFromTemplate = (template: StoryTemplate) => {
+    const newPages: Page[] = template.pages.map((page, pageIndex) => {
+      const newPageId = `page-${Date.now()}-${pageIndex}`;
+      const newWidgets: Widget[] = page.widgets.map((widget, widgetIndex) => ({
+        ...widget,
+        id: `widget-${Date.now()}-${pageIndex}-${widgetIndex}`,
+        dimensions: widget.dimensions.map(d => ({ ...d })),
+        measures: widget.measures.map(m => ({ ...m })),
+        filters: widget.filters ? widget.filters.map(f => ({ ...f })) : [],
+        variance: widget.variance ? { ...widget.variance } : undefined,
+        drillDown: widget.drillDown ? { ...widget.drillDown } : undefined,
+      }));
+      
+      return {
+        ...page,
+        id: newPageId,
+        widgets: newWidgets,
+        layout: page.layout ? page.layout.map(l => ({ ...l })) : [],
+        linkedAnalysis: page.linkedAnalysis !== false,
+      };
+    });
+
     const newStory: Story = {
       id: `story-${Date.now()}`,
       title: `${template.name} - Copy`,
@@ -228,19 +252,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updatedAt: new Date().toISOString().split('T')[0],
       author: 'Current User',
       isSaved: false,
+      isFavorite: false,
       template: template.id,
       tags: [],
       version: 1,
       bookmarks: [],
-      pages: template.pages.map((page, idx) => ({
-        ...page,
-        id: `page-${Date.now()}-${idx}`,
-        widgets: page.widgets.map((widget, widx) => ({
-          ...widget,
-          id: `widget-${Date.now()}-${widx}`
-        }))
-      }))
+      pages: newPages
     };
+    
     setStories([newStory, ...stories]);
     setActiveStory(newStory);
     setActivePageIndex(0);
@@ -264,11 +283,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return story;
     });
     setStories(updatedStories);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStories));
   };
 
   const saveStoryAs = (storyId: string, newTitle: string, newDescription: string) => {
-    const originalStory = stories.find(s => s.id === storyId);
+    const originalStory = stories.find(s => s.id === storyId) || activeStory;
     if (!originalStory) return;
 
     const newStory: Story = {
@@ -285,7 +303,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updatedStories = [newStory, ...stories];
     setStories(updatedStories);
     setActiveStory(newStory);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStories));
   };
 
   const addBookmark = (storyId: string, name: string) => {
@@ -298,24 +315,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       createdAt: new Date().toISOString()
     };
 
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           bookmarks: [...(story.bookmarks || []), bookmark]
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const applyBookmark = (storyId: string, bookmarkId: string) => {
-    const story = stories.find(s => s.id === storyId);
+    const story = activeStory?.id === storyId ? activeStory : stories.find(s => s.id === storyId);
     const bookmark = story?.bookmarks?.find(b => b.id === bookmarkId);
     
     if (bookmark) {
@@ -326,20 +344,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteBookmark = (storyId: string, bookmarkId: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           bookmarks: (story.bookmarks || []).filter(b => b.id !== bookmarkId)
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const processNLPQuery = (query: string): NLPQuery => {
@@ -348,10 +367,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let suggestedDimensions: string[] = [];
     let suggestedMeasures: string[] = [];
     let confidence = 0.7;
-
-    // Use selected model dimensions and measures
-    const modelDims = selectedModelDimensions.map(d => d.field);
-    const modelMeas = selectedModelMeasures.map(m => m.field);
 
     if (lowerQuery.includes('trend') || lowerQuery.includes('over time')) {
       suggestedChart = 'line';
@@ -367,27 +382,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       confidence = 0.88;
     }
 
-    // Match dimensions from selected model
     for (const dim of selectedModelDimensions) {
       if (lowerQuery.includes(dim.name.toLowerCase()) || lowerQuery.includes(dim.field.toLowerCase())) {
         suggestedDimensions.push(dim.field);
       }
     }
 
-    // Match measures from selected model
     for (const meas of selectedModelMeasures) {
       if (lowerQuery.includes(meas.name.toLowerCase()) || lowerQuery.includes(meas.field.toLowerCase())) {
         suggestedMeasures.push(meas.field);
       }
     }
 
-    // Default fallbacks - use first dimension and measure from model
-    if (suggestedDimensions.length === 0 && modelDims.length > 0) {
-      suggestedDimensions.push(modelDims[0]);
+    if (suggestedDimensions.length === 0 && selectedModelDimensions.length > 0) {
+      suggestedDimensions.push(selectedModelDimensions[0].field);
     }
 
-    if (suggestedMeasures.length === 0 && modelMeas.length > 0) {
-      suggestedMeasures.push(modelMeas[0]);
+    if (suggestedMeasures.length === 0 && selectedModelMeasures.length > 0) {
+      suggestedMeasures.push(selectedModelMeasures[0].field);
     }
 
     return {
@@ -400,54 +412,63 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addPageToStory = (storyId: string, pageTitle: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        const newPage: Page = {
+          id: `page-${Date.now()}`,
+          title: pageTitle,
+          widgets: [],
+          layout: [],
+          linkedAnalysis: true
+        };
+        return {
           ...story,
           isSaved: false,
-          pages: [...story.pages, {
-            id: `page-${Date.now()}`,
-            title: pageTitle,
-            widgets: [],
-            layout: [],
-            linkedAnalysis: true
-          }]
+          pages: [...story.pages, newPage]
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-          setActivePageIndex(updatedStory.pages.length - 1);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      const updatedStory = updateStory(activeStory);
+      setActiveStory(updatedStory);
+      setActivePageIndex(updatedStory.pages.length - 1);
+    }
   };
 
   const deletePageFromStory = (storyId: string, pageId: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId && story.pages.length > 1) {
         const pageIndex = story.pages.findIndex(p => p.id === pageId);
-        const updatedStory = {
-          ...story,
-          isSaved: false,
-          pages: story.pages.filter(p => p.id !== pageId)
-        };
+        const newPages = story.pages.filter(p => p.id !== pageId);
+        
         if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
           if (activePageIndex >= pageIndex && activePageIndex > 0) {
             setActivePageIndex(activePageIndex - 1);
           }
         }
-        return updatedStory;
+        
+        return {
+          ...story,
+          isSaved: false,
+          pages: newPages
+        };
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
-  const addWidgetToPage = (storyId: string, pageId: string, widget: any) => {
-    setStories(stories.map(story => {
+  const addWidgetToPage = (storyId: string, pageId: string, widget: Widget) => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           pages: story.pages.map(page => {
@@ -471,19 +492,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return page;
           })
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
-  const updateWidget = (storyId: string, pageId: string, widgetId: string, updatedWidget: any) => {
-    setStories(stories.map(story => {
+  const updateWidget = (storyId: string, pageId: string, widgetId: string, updatedWidget: Widget) => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           pages: story.pages.map(page => {
@@ -498,19 +520,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return page;
           })
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const duplicateWidget = (storyId: string, pageId: string, widgetId: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           pages: story.pages.map(page => {
@@ -541,23 +564,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return page;
           })
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const copyWidgetToPage = (storyId: string, fromPageId: string, widgetId: string, toPageId: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
         const fromPage = story.pages.find(p => p.id === fromPageId);
         const originalWidget = fromPage?.widgets.find(w => w.id === widgetId);
         
         if (originalWidget) {
-          const updatedStory = {
+          return {
             ...story,
             isSaved: false,
             pages: story.pages.map(page => {
@@ -585,20 +609,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               return page;
             })
           };
-          if (activeStory?.id === storyId) {
-            setActiveStory(updatedStory);
-          }
-          return updatedStory;
         }
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const deleteWidget = (storyId: string, pageId: string, widgetId: string) => {
-    setStories(stories.map(story => {
+    const updateStory = (story: Story) => {
       if (story.id === storyId) {
-        const updatedStory = {
+        return {
           ...story,
           isSaved: false,
           pages: story.pages.map(page => {
@@ -612,19 +637,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return page;
           })
         };
-        if (activeStory?.id === storyId) {
-          setActiveStory(updatedStory);
-        }
-        return updatedStory;
       }
       return story;
-    }));
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      setActiveStory(updateStory(activeStory));
+    }
   };
 
   const deleteStory = (storyId: string) => {
     const updatedStories = stories.filter(s => s.id !== storyId);
     setStories(updatedStories);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStories));
     if (activeStory?.id === storyId) {
       setActiveStory(null);
     }
@@ -759,7 +784,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const getDrillDownData = (dimension: string, measure: string, parentValue: string) => {
-    // Find next dimension in hierarchy
     const dimIndex = selectedModelDimensions.findIndex(d => d.field === dimension);
     const nextDim = selectedModelDimensions[dimIndex + 1];
     const childDimension = nextDim?.field || dimension;

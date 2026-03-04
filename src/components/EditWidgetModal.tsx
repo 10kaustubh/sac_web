@@ -31,7 +31,7 @@ const CHART_TYPES: { type: ChartType; label: string; icon: React.ReactNode }[] =
 ];
 
 export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget, onClose, onSave }) => {
-  const { dataModels, selectModel, selectedModel, getModelDimensions, getModelMeasures, activeStory } = useData();
+  const { dataModels, selectModel, selectedModel, getModelDimensions, getModelMeasures } = useData();
   
   const [widgetType, setWidgetType] = useState<WidgetType>('chart');
   const [chartType, setChartType] = useState<ChartType>('bar');
@@ -52,7 +52,6 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
   const [drillDownEnabled, setDrillDownEnabled] = useState(false);
   const [drillDownDimension, setDrillDownDimension] = useState<string>('');
 
-  // Update dimensions and measures when model changes
   useEffect(() => {
     if (selectedModelId) {
       const dims = getModelDimensions(selectedModelId);
@@ -85,7 +84,6 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
     }
   }, [widget]);
 
-  // Initialize with model dimensions/measures on first load
   useEffect(() => {
     if (isOpen && !widget && selectedModelId) {
       const dims = getModelDimensions(selectedModelId);
@@ -207,7 +205,7 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
             >
               {dataModels.map(model => (
                 <option key={model.id} value={model.id}>
-                  {model.name} ({model.rowCount.toLocaleString()} rows)
+                  {model.name} ({(model.rowCount || 0).toLocaleString()} rows)
                 </option>
               ))}
             </select>
@@ -414,7 +412,7 @@ export const EditWidgetModal: React.FC<EditWidgetModalProps> = ({ isOpen, widget
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   <p className="font-medium mb-1">Drill-Down Hierarchy:</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {selectedDimensions.map((dim, idx) => (
                       <React.Fragment key={dim.id}>
                         <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, X, BarChart2, LineChart, PieChart, TrendingUp, Map, Wand2, Database } from 'lucide-react';
+import { Search, Sparkles, X, BarChart2, LineChart, PieChart, TrendingUp, Map, Wand2, Database, Check } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { NLPQuery, Widget, ChartType } from '../types';
 
@@ -47,7 +47,6 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
     
     setIsProcessing(true);
     
-    // Simulate AI processing delay
     setTimeout(() => {
       const nlpResult = processNLPQuery(query);
       setResult(nlpResult);
@@ -66,7 +65,6 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
       selectedModelMeasures.find(m => m.field === field)
     ).filter(Boolean) || [];
 
-    // If no matches found, use first available dimension/measure
     if (selectedDimensions.length === 0 && selectedModelDimensions.length > 0) {
       selectedDimensions.push(selectedModelDimensions[0]);
     }
@@ -216,7 +214,7 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                        <TrendingUp size={12} />
+                        <Check size={12} />
                         Confidence: {(result.confidence * 100).toFixed(0)}%
                       </div>
                     </div>

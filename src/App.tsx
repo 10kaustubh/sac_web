@@ -8,13 +8,33 @@ import { TemplateSelector } from './components/TemplateSelector';
 import { StoryEditor } from './components/StoryEditor';
 import { DataProvider, useData } from './context/DataContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { 
+  Search, 
+  Lightbulb, 
+  TrendingUp, 
+  BarChart2, 
+  AlertTriangle,
+  ClipboardList,
+  Target,
+  GitBranch,
+  PieChart,
+  FileText,
+  Users,
+  Package,
+  Megaphone,
+  Factory,
+  File,
+  DollarSign,
+  Calendar,
+  Layers
+} from 'lucide-react';
 import './index.css';
 
 const AppContent: React.FC = () => {
   const [activeView, setActiveView] = useState('home');
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const { theme } = useTheme();
-  const { setActiveStory, activeStory, createStory } = useData();
+  const { setActiveStory, activeStory } = useData();
 
   const handleOpenStory = (story: any) => {
     setActiveStory(story);
@@ -30,7 +50,6 @@ const AppContent: React.FC = () => {
   };
 
   const renderContent = () => {
-    // If there's an active story, show the story editor
     if (activeStory) {
       return <StoryEditor />;
     }
@@ -57,27 +76,27 @@ const AppContent: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">🔍</span>
+                    <Search size={24} className="text-blue-600 dark:text-blue-300" />
                   </div>
                   <h3 className="font-semibold text-sap-blue text-lg">Smart Discovery</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">AI-powered insights that automatically find patterns and anomalies in your data.</p>
-                  <button className="mt-4 text-sap-blue text-sm font-medium hover:underline">Explore →</button>
+                  <button className="mt-4 text-sap-blue text-sm font-medium hover:underline">Explore</button>
                 </div>
                 <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">📈</span>
+                    <TrendingUp size={24} className="text-green-600 dark:text-green-300" />
                   </div>
                   <h3 className="font-semibold text-green-600 text-lg">Smart Predict</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Machine learning models for forecasting and predictive analytics.</p>
-                  <button className="mt-4 text-green-600 text-sm font-medium hover:underline">Explore →</button>
+                  <button className="mt-4 text-green-600 text-sm font-medium hover:underline">Explore</button>
                 </div>
                 <div className="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800">
                   <div className="w-12 h-12 bg-purple-100 dark:bg-purple-800 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">💡</span>
+                    <Lightbulb size={24} className="text-purple-600 dark:text-purple-300" />
                   </div>
                   <h3 className="font-semibold text-purple-600 text-lg">Smart Insights</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Automated analysis with natural language explanations.</p>
-                  <button className="mt-4 text-purple-600 text-sm font-medium hover:underline">Explore →</button>
+                  <button className="mt-4 text-purple-600 text-sm font-medium hover:underline">Explore</button>
                 </div>
               </div>
             </div>
@@ -87,7 +106,7 @@ const AppContent: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                    <span>📊</span>
+                    <BarChart2 size={18} className="text-blue-600 dark:text-blue-300" />
                   </div>
                   <div>
                     <h4 className="font-medium text-sap-dark dark:text-white">Revenue Spike Detected</h4>
@@ -97,7 +116,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                    <span>📈</span>
+                    <TrendingUp size={18} className="text-green-600 dark:text-green-300" />
                   </div>
                   <div>
                     <h4 className="font-medium text-sap-dark dark:text-white">Product A Outperforming</h4>
@@ -107,7 +126,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
-                    <span>⚠️</span>
+                    <AlertTriangle size={18} className="text-orange-600 dark:text-orange-300" />
                   </div>
                   <div>
                     <h4 className="font-medium text-sap-dark dark:text-white">Cost Trend Warning</h4>
@@ -128,7 +147,7 @@ const AppContent: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="p-6 border dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">📋</span>
+                    <ClipboardList size={24} className="text-blue-600 dark:text-blue-300" />
                   </div>
                   <h3 className="font-semibold text-sap-dark dark:text-white text-lg">Budget Planning</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Create and manage budgets with collaborative planning features.</p>
@@ -139,7 +158,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <div className="p-6 border dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">🎯</span>
+                    <Target size={24} className="text-green-600 dark:text-green-300" />
                   </div>
                   <h3 className="font-semibold text-sap-dark dark:text-white text-lg">Forecasting</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Predict future trends using statistical and ML-based models.</p>
@@ -150,7 +169,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <div className="p-6 border dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
                   <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">🔄</span>
+                    <GitBranch size={24} className="text-purple-600 dark:text-purple-300" />
                   </div>
                   <h3 className="font-semibold text-sap-dark dark:text-white text-lg">Scenario Planning</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Create what-if scenarios to evaluate different business outcomes.</p>
@@ -160,7 +179,7 @@ const AppContent: React.FC = () => {
                 </div>
                 <div className="p-6 border dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
                   <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mb-4">
-                    <span className="text-2xl">📊</span>
+                    <PieChart size={24} className="text-orange-600 dark:text-orange-300" />
                   </div>
                   <h3 className="font-semibold text-sap-dark dark:text-white text-lg">Variance Analysis</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Compare actual vs planned with detailed variance breakdowns.</p>
@@ -189,29 +208,34 @@ const AppContent: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { icon: '📊', name: 'Executive Dashboard', desc: 'High-level KPIs and trends for leadership', category: 'Finance', pages: 2 },
-                { icon: '📈', name: 'Sales Analysis', desc: 'Detailed sales performance by region', category: 'Sales', pages: 3 },
-                { icon: '💰', name: 'Cost Analysis', desc: 'Operating costs and margin analysis', category: 'Finance', pages: 2 },
-                { icon: '👥', name: 'HR Analytics', desc: 'Workforce metrics and employee insights', category: 'HR', pages: 4 },
-                { icon: '📦', name: 'Inventory Dashboard', desc: 'Stock levels and supply chain metrics', category: 'Operations', pages: 2 },
-                { icon: '🎯', name: 'Marketing Performance', desc: 'Campaign ROI and channel analysis', category: 'Marketing', pages: 3 },
-                { icon: '🏭', name: 'Manufacturing KPIs', desc: 'Production efficiency and quality metrics', category: 'Operations', pages: 2 },
-                { icon: '📄', name: 'Blank Canvas', desc: 'Start from scratch with empty story', category: 'General', pages: 1 },
-              ].map((template, index) => (
-                <div 
-                  key={index}
-                  onClick={() => setIsTemplateOpen(true)}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                >
-                  <div className="text-4xl mb-4">{template.icon}</div>
-                  <h3 className="font-semibold text-sap-dark dark:text-white">{template.name}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{template.desc}</p>
-                  <div className="flex gap-2 mt-4">
-                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">{template.category}</span>
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">{template.pages} pages</span>
+                { icon: BarChart2, name: 'Executive Dashboard', desc: 'High-level KPIs and trends for leadership', category: 'Finance', pages: 2 },
+                { icon: TrendingUp, name: 'Sales Analysis', desc: 'Detailed sales performance by region', category: 'Sales', pages: 3 },
+                { icon: DollarSign, name: 'Cost Analysis', desc: 'Operating costs and margin analysis', category: 'Finance', pages: 2 },
+                { icon: Users, name: 'HR Analytics', desc: 'Workforce metrics and employee insights', category: 'HR', pages: 4 },
+                { icon: Package, name: 'Inventory Dashboard', desc: 'Stock levels and supply chain metrics', category: 'Operations', pages: 2 },
+                { icon: Megaphone, name: 'Marketing Performance', desc: 'Campaign ROI and channel analysis', category: 'Marketing', pages: 3 },
+                { icon: Factory, name: 'Manufacturing KPIs', desc: 'Production efficiency and quality metrics', category: 'Operations', pages: 2 },
+                { icon: File, name: 'Blank Canvas', desc: 'Start from scratch with empty story', category: 'General', pages: 1 },
+              ].map((template, index) => {
+                const IconComponent = template.icon;
+                return (
+                  <div 
+                    key={index}
+                    onClick={() => setIsTemplateOpen(true)}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
+                      <IconComponent size={24} className="text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <h3 className="font-semibold text-sap-dark dark:text-white">{template.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{template.desc}</p>
+                    <div className="flex gap-2 mt-4">
+                      <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">{template.category}</span>
+                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">{template.pages} pages</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
