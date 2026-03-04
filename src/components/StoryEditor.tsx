@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical, Sparkles, Bookmark, Link, Unlink, Search, Database } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Save, Check, Trash2, Download, MoreVertical, Sparkles, Bookmark, Link, Unlink, Search, Database, ChevronDown } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { WidgetRenderer } from './WidgetRenderer';
 import { EditWidgetModal } from './EditWidgetModal';
@@ -25,6 +25,7 @@ export const StoryEditor: React.FC = () => {
     copyWidgetToPage,
     deleteWidget,
     saveStory,
+    saveStoryAs,
     filters,
     applyFilter,
     resetFilters,
@@ -45,6 +46,10 @@ export const StoryEditor: React.FC = () => {
   const [showPageMenu, setShowPageMenu] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showModelMenu, setShowModelMenu] = useState(false);
+  const [showSaveMenu, setShowSaveMenu] = useState(false);
+  const [showSaveAsModal, setShowSaveAsModal] = useState(false);
+  const [saveAsTitle, setSaveAsTitle] = useState('');
+  const [saveAsDescription, setSaveAsDescription] = useState('');
   const [isNLPSearchOpen, setIsNLPSearchOpen] = useState(false);
   const [isInsightsPanelOpen, setIsInsightsPanelOpen] = useState(false);
   const [isBookmarksPanelOpen, setIsBookmarksPanelOpen] = useState(false);
@@ -100,6 +105,7 @@ export const StoryEditor: React.FC = () => {
       const newPageTitle = `Page ${activeStory.pages.length + 1}`;
       const newPageId = `page-${Date.now()}`;
       
+      // Create new widget with new ID
       const newWidget = {
         ...widget,
         id: `widget-${Date.now()}`,
@@ -108,6 +114,7 @@ export const StoryEditor: React.FC = () => {
         filters: widget.filters ? widget.filters.map(f => ({ ...f })) : [],
       };
 
+      // Create new page with the widget
       const newPage = {
         id: newPageId,
         title: newPageTitle,
@@ -124,6 +131,7 @@ export const StoryEditor: React.FC = () => {
         linkedAnalysis: true
       };
 
+      // Update the story with new page
       const updatedStory = {
         ...activeStory,
         isSaved: false,
@@ -160,13 +168,38 @@ export const StoryEditor: React.FC = () => {
     }
   };
 
+  // Save Story (quick save)
   const handleSaveStory = () => {
     setSaveStatus('saving');
     saveStory(activeStory.id);
+    setShowSaveMenu(false);
     setTimeout(() => {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }, 500);
+  };
+
+  // Open Save As modal
+  const handleOpenSaveAs = () => {
+    setSaveAsTitle(activeStory.title + ' (Copy)');
+    setSaveAsDescription(activeStory.description);
+    setShowSaveAsModal(true);
+    setShowSaveMenu(false);
+  };
+
+  // Save As with new name
+  const handleSaveAs = () => {
+    if (saveAsTitle.trim()) {
+      setSaveStatus('saving');
+      saveStoryAs(activeStory.id, saveAsTitle.trim(), saveAsDescription.trim());
+      setShowSaveAsModal(false);
+      setSaveAsTitle('');
+      setSaveAsDescription('');
+      setTimeout(() => {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }, 500);
+    }
   };
 
   const handleModelChange = (modelId: string) => {
@@ -366,33 +399,68 @@ export const StoryEditor: React.FC = () => {
               )}
             </div>
 
-            {/* Save Button */}
-            <button
-              onClick={handleSaveStory}
-              disabled={saveStatus === 'saving'}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                saveStatus === 'saved'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-sap-blue text-white hover:bg-blue-700'
-              }`}
-            >
-              {saveStatus === 'saving' ? (
+            {/* Save Button with Dropdown */}
+            <div className="relative">
+              <div className="flex">
+                <button
+                  onClick={handleSaveStory}
+                  disabled={saveStatus === 'saving'}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-l-lg transition-colors ${
+                    saveStatus === 'saved'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-sap-blue text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {saveStatus === 'saving' ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : saveStatus === 'saved' ? (
+                    <>
+                      <Check size={18} />
+                      Saved
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Save
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowSaveMenu(!showSaveMenu)}
+                  className={`px-2 py-2 rounded-r-lg border-l border-blue-600 transition-colors ${
+                    saveStatus === 'saved'
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-sap-blue text-white hover:bg-blue-700'
+                  }`}
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+              {showSaveMenu && (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : saveStatus === 'saved' ? (
-                <>
-                  <Check size={18} />
-                  Saved
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  Save
+                  <div className="fixed inset-0 z-10" onClick={() => setShowSaveMenu(false)} />
+                  <div className="absolute right-0 top-10 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[150px]">
+                    <button
+                      onClick={handleSaveStory}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white flex items-center gap-2"
+                    >
+                      <Save size={14} />
+                      Save
+                    </button>
+                    <button
+                      onClick={handleOpenSaveAs}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 dark:text-white flex items-center gap-2"
+                    >
+                      <Save size={14} />
+                      Save As...
+                    </button>
+                  </div>
                 </>
               )}
-            </button>
+            </div>
 
             {/* Add Widget Button */}
             <button
@@ -407,18 +475,20 @@ export const StoryEditor: React.FC = () => {
       </div>
 
       {/* Model Info Bar */}
-      <div className="bg-indigo-50 dark:bg-indigo-900/20 border-b dark:border-gray-700 px-4 py-2">
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-indigo-700 dark:text-indigo-300 font-medium flex items-center gap-2">
-            <Database size={14} />
-            {selectedModel?.name}
-          </span>
-          <span className="text-gray-500 dark:text-gray-400">|</span>
-          <span className="text-gray-600 dark:text-gray-400">{selectedModel?.description}</span>
-          <span className="text-gray-500 dark:text-gray-400">|</span>
-          <span className="text-gray-600 dark:text-gray-400">{selectedModel?.rowCount?.toLocaleString()} rows</span>
+      {selectedModel && (
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border-b dark:border-gray-700 px-4 py-2">
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-indigo-700 dark:text-indigo-300 font-medium flex items-center gap-2">
+              <Database size={14} />
+              {selectedModel.name}
+            </span>
+            <span className="text-gray-500 dark:text-gray-400">|</span>
+            <span className="text-gray-600 dark:text-gray-400">{selectedModel.description}</span>
+            <span className="text-gray-500 dark:text-gray-400">|</span>
+            <span className="text-gray-600 dark:text-gray-400">{selectedModel.rowCount?.toLocaleString()} rows</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
@@ -440,7 +510,7 @@ export const StoryEditor: React.FC = () => {
               <div key={page.id} className="relative flex items-center">
                 <button
                   onClick={() => setActivePageIndex(index)}
-                  className={`px-3 py-1 rounded text-sm ${
+                  className={`px-3 py-1 rounded text-sm flex items-center gap-1 ${
                     index === activePageIndex
                       ? 'bg-sap-blue text-white'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
@@ -449,11 +519,8 @@ export const StoryEditor: React.FC = () => {
                   {page.title}
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPageMenu(showPageMenu === page.id ? null : page.id);
-                  }}
-                  className="ml-1 p-0.5 rounded hover:bg-black/10"
+                  onClick={() => setShowPageMenu(showPageMenu === page.id ? null : page.id)}
+                  className="ml-1 p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   <MoreVertical size={12} className="dark:text-gray-400" />
                 </button>
@@ -573,6 +640,60 @@ export const StoryEditor: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Save As Modal */}
+      {showSaveAsModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowSaveAsModal(false)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Save Story As</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Story Title
+                  </label>
+                  <input
+                    type="text"
+                    value={saveAsTitle}
+                    onChange={(e) => setSaveAsTitle(e.target.value)}
+                    className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
+                    placeholder="Enter story title"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={saveAsDescription}
+                    onChange={(e) => setSaveAsDescription(e.target.value)}
+                    className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sap-blue"
+                    placeholder="Enter story description"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setShowSaveAsModal(false)}
+                  className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveAs}
+                  disabled={!saveAsTitle.trim()}
+                  className="px-4 py-2 bg-sap-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Modals and Panels */}
       <EditWidgetModal
