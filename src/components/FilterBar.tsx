@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Filter, SlidersHorizontal, X, ChevronDown, RotateCcw, Calendar, Check } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, RotateCcw, Check } from 'lucide-react';
 
 interface FilterOption {
   id: string;
@@ -11,16 +11,19 @@ interface FilterOption {
 interface FilterBarProps {
   filters: FilterOption[];
   onFilterChange: (filterId: string, value: string) => void;
+  onResetAll?: () => void;
 }
 
-export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange }) => {
+export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, onResetAll }) => {
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-  const [showAllFilters, setShowAllFilters] = useState(false);
 
   const activeFiltersCount = filters.filter(f => f.selected !== 'All').length;
 
   const handleResetAll = () => {
     filters.forEach(f => onFilterChange(f.id, 'All'));
+    if (onResetAll) {
+      onResetAll();
+    }
   };
 
   const handleFilterSelect = (filterId: string, value: string) => {
@@ -28,48 +31,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
     setExpandedFilter(null);
   };
 
-  // Cascading filter logic - when region changes, we could filter products
-  const getCascadedOptions = (filter: FilterOption) => {
-    // For demo purposes, return all options
-    // In real SAC, this would filter based on parent selections
-    return filter.options;
-  };
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-      {/* Filter Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-          <SlidersHorizontal size={18} />
-          <span className="text-sm font-medium">Filters</span>
-          {activeFiltersCount > 0 && (
-            <span className="px-2 py-0.5 bg-sap-blue text-white text-xs rounded-full">
-              {activeFiltersCount} active
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {activeFiltersCount > 0 && (
-            <button
-              onClick={handleResetAll}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              <RotateCcw size={14} />
-              Reset All
-            </button>
-          )}
-          <button
-            onClick={() => setShowAllFilters(!showAllFilters)}
-            className="text-sm text-sap-blue hover:underline"
-          >
-            {showAllFilters ? 'Show Less' : 'More Filters'}
-          </button>
-        </div>
+    <div className="flex items-center gap-4 flex-wrap">
+      {/* Filter Icon and Label */}
+      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+        <SlidersHorizontal size={18} />
+        <span className="text-sm font-medium">Filters</span>
+        {activeFiltersCount > 0 && (
+          <span className="px-2 py-0.5 bg-sap-blue text-white text-xs rounded-full">
+            {activeFiltersCount}
+          </span>
+        )}
       </div>
 
       {/* Active Filters Tags */}
       {activeFiltersCount > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b dark:border-gray-700">
+        <div className="flex flex-wrap gap-2">
           {filters.filter(f => f.selected !== 'All').map(filter => (
             <span
               key={filter.id}
@@ -88,20 +65,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
         </div>
       )}
 
-      {/* Filter Controls */}
-      <div className="flex flex-wrap gap-3">
-        {filters.slice(0, showAllFilters ? filters.length : 3).map((filter) => (
+      {/* Divider */}
+      <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+
+      {/* Filter Dropdowns */}
+      <div className="flex flex-wrap gap-2">
+        {filters.map((filter) => (
           <div key={filter.id} className="relative">
             <button
               onClick={() => setExpandedFilter(expandedFilter === filter.id ? null : filter.id)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm transition-colors ${
                 filter.selected !== 'All'
                   ? 'border-sap-blue bg-blue-50 dark:bg-blue-900/20 text-sap-blue'
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <span className="text-gray-500 dark:text-gray-400">{filter.label}:</span>
-              <span className="font-medium">{filter.selected}</span>
+              <span>{filter.label}</span>
               <ChevronDown size={14} className={`transition-transform ${expandedFilter === filter.id ? 'rotate-180' : ''}`} />
             </button>
 
@@ -113,7 +92,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
                   onClick={() => setExpandedFilter(null)}
                 />
                 <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-700 rounded-lg shadow-lg border dark:border-gray-600 py-1 z-20 min-w-[180px] max-h-64 overflow-y-auto">
-                  {getCascadedOptions(filter).map((option) => (
+                  {filter.options.map((option) => (
                     <button
                       key={option}
                       onClick={() => handleFilterSelect(filter.id, option)}
@@ -130,79 +109,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
             )}
           </div>
         ))}
+      </div>
 
-        {/* Date Range Picker (Visual Demo) */}
-        {showAllFilters && (
+      {/* Reset Button */}
+      {activeFiltersCount > 0 && (
+        <>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:border-gray-300"
+            onClick={handleResetAll}
+            className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
           >
-            <Calendar size={14} />
-            <span>Date Range</span>
-            <ChevronDown size={14} />
+            <RotateCcw size={14} />
+            Reset All
           </button>
-        )}
-      </div>
-
-      {/* Quick Filter Chips */}
-      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t dark:border-gray-700">
-        <span className="text-xs text-gray-500 dark:text-gray-400 py-1">Quick filters:</span>
-        <button
-          onClick={() => onFilterChange('1', '2024')}
-          className={`px-3 py-1 rounded-full text-xs transition-colors ${
-            filters.find(f => f.id === '1')?.selected === '2024'
-              ? 'bg-sap-blue text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          This Year
-        </button>
-        <button
-          onClick={() => onFilterChange('1', '2023')}
-          className={`px-3 py-1 rounded-full text-xs transition-colors ${
-            filters.find(f => f.id === '1')?.selected === '2023'
-              ? 'bg-sap-blue text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Last Year
-        </button>
-        <button
-          onClick={() => {
-            onFilterChange('2', 'North America');
-          }}
-          className={`px-3 py-1 rounded-full text-xs transition-colors ${
-            filters.find(f => f.id === '2')?.selected === 'North America'
-              ? 'bg-sap-blue text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          North America
-        </button>
-        <button
-          onClick={() => {
-            onFilterChange('2', 'Europe');
-          }}
-          className={`px-3 py-1 rounded-full text-xs transition-colors ${
-            filters.find(f => f.id === '2')?.selected === 'Europe'
-              ? 'bg-sap-blue text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Europe
-        </button>
-        <button
-          onClick={() => {
-            onFilterChange('3', 'Product A');
-          }}
-          className={`px-3 py-1 rounded-full text-xs transition-colors ${
-            filters.find(f => f.id === '3')?.selected === 'Product A'
-              ? 'bg-sap-blue text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Product A
-        </button>
-      </div>
+        </>
+      )}
     </div>
   );
 };

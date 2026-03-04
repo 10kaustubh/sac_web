@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, X, BarChart2, LineChart, PieChart, TrendingUp, Map, Table, Wand2 } from 'lucide-react';
+import { Search, Sparkles, X, BarChart2, LineChart, PieChart, TrendingUp, Map, Wand2, Database } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { NLPQuery, Widget, ChartType } from '../types';
 
@@ -10,10 +10,11 @@ interface SearchToInsightProps {
 }
 
 export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClose, onCreateWidget }) => {
-  const { processNLPQuery, dimensions, measures } = useData();
+  const { processNLPQuery, dataModels, selectedModel, selectModel, selectedModelDimensions, selectedModelMeasures } = useData();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<NLPQuery | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentModelId, setCurrentModelId] = useState(selectedModel?.id || dataModels[0]?.id || '');
 
   const exampleQueries = [
     "Show revenue by region",
@@ -35,6 +36,12 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
     }
   };
 
+  const handleModelChange = (modelId: string) => {
+    setCurrentModelId(modelId);
+    selectModel(modelId);
+    setResult(null);
+  };
+
   const handleSearch = () => {
     if (!query.trim()) return;
     
@@ -52,12 +59,20 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
     if (!result) return;
 
     const selectedDimensions = result.suggestedDimensions?.map(field => 
-      dimensions.find(d => d.field === field)
+      selectedModelDimensions.find(d => d.field === field)
     ).filter(Boolean) || [];
 
     const selectedMeasures = result.suggestedMeasures?.map(field => 
-      measures.find(m => m.field === field)
+      selectedModelMeasures.find(m => m.field === field)
     ).filter(Boolean) || [];
+
+    // If no matches found, use first available dimension/measure
+    if (selectedDimensions.length === 0 && selectedModelDimensions.length > 0) {
+      selectedDimensions.push(selectedModelDimensions[0]);
+    }
+    if (selectedMeasures.length === 0 && selectedModelMeasures.length > 0) {
+      selectedMeasures.push(selectedModelMeasures[0]);
+    }
 
     const widget: Partial<Widget> = {
       type: 'chart',
@@ -87,6 +102,8 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
+  const currentModel = dataModels.find(m => m.id === currentModelId);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -107,6 +124,43 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
               <X size={20} />
             </button>
           </div>
+        </div>
+
+        {/* Model Selection */}
+        <div className="p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="flex items-center gap-3">
+            <Database size={18} className="text-sap-blue" />
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Data Model:</label>
+            <select
+              value={currentModelId}
+              onChange={(e) => handleModelChange(e.target.value)}
+              className="flex-1 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sap-blue"
+            >
+              {dataModels.map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {currentModel && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Available fields:</span>
+              {selectedModelDimensions.slice(0, 3).map(d => (
+                <span key={d.id} className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                  {d.name}
+                </span>
+              ))}
+              {selectedModelMeasures.slice(0, 3).map(m => (
+                <span key={m.id} className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">
+                  {m.name}
+                </span>
+              ))}
+              {(selectedModelDimensions.length + selectedModelMeasures.length > 6) && (
+                <span className="text-xs text-gray-400">+{selectedModelDimensions.length + selectedModelMeasures.length - 6} more</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search Input */}
@@ -178,6 +232,9 @@ export const SearchToInsight: React.FC<SearchToInsightProps> = ({ isOpen, onClos
 
               {/* Preview chips */}
               <div className="mt-4 flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-white dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-400 border dark:border-gray-600">
+                  Model: {currentModel?.name}
+                </span>
                 <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
                   Chart: {result.suggestedChart}
                 </span>

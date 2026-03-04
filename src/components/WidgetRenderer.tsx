@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   ComposedChart, ScatterChart, Scatter, Treemap
 } from 'recharts';
-import { TrendingUp, TrendingDown, Trash2, Edit2, Copy, Download, Filter, X, ArrowUpDown, Link, Unlink } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2, Edit2, Copy, Download, Filter, X, ArrowUpDown, Link, Layers, ChevronRight } from 'lucide-react';
 import { Widget, SortConfig } from '../types';
 import { useData } from '../context/DataContext';
 import html2canvas from 'html2canvas';
@@ -28,12 +28,15 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
   const widgetRef = useRef<HTMLDivElement>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-  const [drillDownValue, setDrillDownValue] = useState<string | null>(null);
+  const [drillDownLevel, setDrillDownLevel] = useState(0);
+  const [drillDownPath, setDrillDownPath] = useState<{ dimension: string; value: string }[]>([]);
   
-  const dimension = widget.dimensions[0];
+  // Get all dimensions and current dimension based on drill level
+  const allDimensions = widget.dimensions;
+  const currentDimension = allDimensions[Math.min(drillDownLevel, allDimensions.length - 1)];
   const measureFields = widget.measures.map(m => m.field);
   
-  if (!dimension || widget.measures.length === 0) {
+  if (!currentDimension || widget.measures.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <p className="text-gray-500 dark:text-gray-400">Widget configuration incomplete</p>
@@ -41,13 +44,18 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
     );
   }
 
-  let data: DataItem[] = drillDownValue 
-    ? getDrillDownData(dimension.field, measureFields[0], drillDownValue)
-    : getMultiMeasureData(dimension.field, measureFields);
+  // Get data based on drill-down path
+  let data: DataItem[];
+  if (drillDownPath.length > 0 && drillDownLevel > 0) {
+    const lastDrill = drillDownPath[drillDownPath.length - 1];
+    data = getDrillDownData(lastDrill.dimension, measureFields[0], lastDrill.value);
+  } else {
+    data = getMultiMeasureData(currentDimension.field, measureFields);
+  }
 
   // Get variance data if needed
   const varianceData = widget.variance?.enabled 
-    ? getVarianceData(dimension.field, measureFields[0], widget.variance.compareMeasure || 'plan_revenue')
+    ? getVarianceData(currentDimension.field, measureFields[0], widget.variance.compareMeasure || 'plan_revenue')
     : null;
 
   // Apply sorting for tables
@@ -67,8 +75,8 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
   const handleDrillDown = (value: string) => {
     if (linkedAnalysisEnabled) {
       applyWidgetFilter({
-        dimensionId: dimension.id,
-        field: dimension.field,
+        dimensionId: currentDimension.id,
+        field: currentDimension.field,
         selectedValues: [value]
       });
     }
@@ -81,7 +89,23 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
   };
 
   const handleDrillThrough = (value: string) => {
-    setDrillDownValue(drillDownValue === value ? null : value);
+    // Only drill if there are more dimensions to drill into
+    if (drillDownLevel < allDimensions.length - 1) {
+      setDrillDownPath([...drillDownPath, { dimension: currentDimension.field, value }]);
+      setDrillDownLevel(drillDownLevel + 1);
+    }
+  };
+
+  const handleDrillUp = () => {
+    if (drillDownLevel > 0) {
+      setDrillDownPath(drillDownPath.slice(0, -1));
+      setDrillDownLevel(drillDownLevel - 1);
+    }
+  };
+
+  const handleResetDrill = () => {
+    setDrillDownPath([]);
+    setDrillDownLevel(0);
   };
 
   const handleExport = async (format: 'png' | 'jpg') => {
@@ -111,7 +135,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
     });
   };
 
-  const isFiltered = widgetFilters.some(f => f.field === dimension.field);
+  const isFiltered = widgetFilters.some(f => f.field === currentDimension.field);
 
   // Waterfall chart data transformation
   const getWaterfallData = () => {
@@ -352,7 +376,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b dark:border-gray-700">
-                  <th className="py-2 px-3 text-left font-medium text-gray-700 dark:text-gray-300">{dimension.name}</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700 dark:text-gray-300">{currentDimension.name}</th>
                   {widget.measures.map(m => (
                     <th key={m.id} className="py-2 px-3 text-center font-medium text-gray-700 dark:text-gray-300">{m.name}</th>
                   ))}
@@ -362,7 +386,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                 {data.map((row, idx) => {
                   const maxValue = Math.max(...data.flatMap(r => widget.measures.map(m => Number(r[m.field]) || 0)));
                   return (
-                    <tr key={idx} className="border-b dark:border-gray-700">
+                    <tr key={idx} className="border-b dark:border-gray-700 cursor-pointer hover:opacity-80" onClick={() => handleDrillDown(row.name)}>
                       <td className="py-2 px-3 dark:text-gray-300">{row.name}</td>
                       {widget.measures.map(m => {
                         const value = Number(row[m.field]) || 0;
@@ -465,7 +489,6 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       return { name: measure.name, value: total, color: measure.color, field: measure.field };
     });
 
-    // Calculate variance if enabled
     const variance = varianceData ? {
       absolute: varianceData.reduce((sum: number, item: any) => sum + item.variance, 0),
       percent: varianceData.reduce((sum: number, item: any) => sum + item.actual, 0) / 
@@ -511,7 +534,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
-                  {dimension.name}
+                  {currentDimension.name}
                   <ArrowUpDown size={14} className={sortConfig?.field === 'name' ? 'text-sap-blue' : 'text-gray-400'} />
                 </div>
               </th>
@@ -533,6 +556,9 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                   <th className="text-right py-2 px-3 font-medium text-gray-700 dark:text-gray-300">Var %</th>
                 </>
               )}
+              {allDimensions.length > 1 && drillDownLevel < allDimensions.length - 1 && (
+                <th className="text-center py-2 px-3 font-medium text-gray-700 dark:text-gray-300 w-16">Drill</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -541,7 +567,6 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                 key={row.name + index} 
                 className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() => handleDrillDown(row.name)}
-                onDoubleClick={() => handleDrillThrough(row.name)}
               >
                 <td className="py-2 px-3 dark:text-gray-300">{row.name}</td>
                 {widget.measures.map((measure) => (
@@ -558,6 +583,20 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                       {row.variancePercent >= 0 ? '+' : ''}{row.variancePercent.toFixed(1)}%
                     </td>
                   </>
+                )}
+                {allDimensions.length > 1 && drillDownLevel < allDimensions.length - 1 && (
+                  <td className="text-center py-2 px-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDrillThrough(row.name);
+                      }}
+                      className="p-1 hover:bg-sap-blue/10 rounded text-sap-blue"
+                      title="Drill down"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </td>
                 )}
               </tr>
             ))}
@@ -585,6 +624,9 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
                   <td className="text-right py-2 px-3 dark:text-gray-300">-</td>
                 </>
               )}
+              {allDimensions.length > 1 && drillDownLevel < allDimensions.length - 1 && (
+                <td></td>
+              )}
             </tr>
           </tfoot>
         </table>
@@ -598,15 +640,44 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-lg font-semibold text-sap-dark dark:text-white">{widget.title}</h3>
-          {drillDownValue && (
-            <button
-              onClick={() => setDrillDownValue(null)}
-              className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200"
-            >
-              Drill: {drillDownValue}
-              <X size={12} />
-            </button>
+          
+          {/* Dimension badges */}
+          <div className="flex items-center gap-1">
+            {allDimensions.map((dim, idx) => (
+              <span 
+                key={dim.id} 
+                className={`text-xs px-2 py-0.5 rounded ${
+                  idx === drillDownLevel 
+                    ? 'bg-sap-blue text-white' 
+                    : idx < drillDownLevel
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                }`}
+              >
+                {dim.name}
+              </span>
+            ))}
+          </div>
+
+          {/* Drill-down path */}
+          {drillDownPath.length > 0 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleResetDrill}
+                className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200"
+              >
+                <Layers size={12} />
+                {drillDownPath.map((p, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <ChevronRight size={10} />}
+                    {p.value}
+                  </React.Fragment>
+                ))}
+                <X size={12} />
+              </button>
+            </div>
           )}
+
           {isFiltered && (
             <button
               onClick={clearWidgetFilters}
@@ -625,6 +696,15 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
           )}
         </div>
         <div className="flex items-center gap-1 relative">
+          {drillDownLevel > 0 && (
+            <button
+              onClick={handleDrillUp}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-purple-500"
+              title="Drill up"
+            >
+              <Layers size={16} />
+            </button>
+          )}
           {onEdit && (
             <button
               onClick={onEdit}
@@ -686,11 +766,16 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ widget, onDelete
       {widget.type === 'table' && renderTable()}
 
       {/* Interaction hints */}
-      {widget.type === 'chart' && (
+      {widget.type === 'chart' && allDimensions.length > 1 && (
         <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mt-2">
           <span>Click to filter</span>
           <span>•</span>
-          <span>Double-click to drill</span>
+          <span>Double-click to drill down</span>
+        </div>
+      )}
+      {widget.type === 'chart' && allDimensions.length === 1 && (
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mt-2">
+          <span>Click to filter</span>
         </div>
       )}
     </div>

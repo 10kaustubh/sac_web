@@ -6,11 +6,11 @@ import { SearchResult } from '../types';
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectStory: (storyId: string) => void;
+  onNavigate: (view: string) => void;
 }
 
-export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSelectStory }) => {
-  const { searchAll, stories, setActiveStory, setActivePageIndex } = useData();
+export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNavigate }) => {
+  const { searchAll, stories, setActiveStory, setActivePageIndex, dataModels } = useData();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -61,6 +61,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
       if (story) {
         setActiveStory(story);
         setActivePageIndex(0);
+        onNavigate('stories');
       }
     } else if (result.type === 'page' && result.storyId) {
       const story = stories.find(s => s.id === result.storyId);
@@ -68,6 +69,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
         const pageIndex = story.pages.findIndex(p => p.id === result.id);
         setActiveStory(story);
         setActivePageIndex(pageIndex >= 0 ? pageIndex : 0);
+        onNavigate('stories');
+      }
+    } else if (result.type === 'model') {
+      onNavigate('models');
+    } else if (result.type === 'widget' && result.storyId) {
+      const story = stories.find(s => s.id === result.storyId);
+      if (story) {
+        setActiveStory(story);
+        setActivePageIndex(0);
+        onNavigate('stories');
       }
     }
     
@@ -123,7 +134,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {query.trim() === '' ? (
-            // Recent Searches
             <div className="p-4">
               {recentSearches.length > 0 ? (
                 <>

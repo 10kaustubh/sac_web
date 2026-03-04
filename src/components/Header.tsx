@@ -3,11 +3,14 @@ import { Search, Bell, User, HelpCircle, Moon, Sun, Command } from 'lucide-react
 import { useTheme } from '../context/ThemeContext';
 import { SearchModal } from './SearchModal';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onNavigate?: (view: string) => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const { theme, toggleTheme } = useTheme();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Keyboard shortcut for search
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -18,6 +21,12 @@ export const Header: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleNavigate = (view: string) => {
+    if (onNavigate) {
+      onNavigate(view);
+    }
+  };
 
   return (
     <>
@@ -40,7 +49,6 @@ export const Header: React.FC = () => {
           </button>
         </div>
         <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
           <button 
             onClick={toggleTheme}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -71,7 +79,7 @@ export const Header: React.FC = () => {
       <SearchModal 
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSelectStory={() => {}}
+        onNavigate={handleNavigate}
       />
     </>
   );

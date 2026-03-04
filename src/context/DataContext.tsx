@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Story, Filter, DataRow, Dimension, Measure, Widget, DataModel, SearchResult, StoryTemplate, WidgetFilter, Bookmark, SmartInsight, NLPQuery } from '../types';
-import { rawData, defaultStories, filters as initialFilters, availableDimensions, availableMeasures, dataModels, storyTemplates, smartInsights } from '../data/mockData';
+import { rawData, defaultStories, filters as initialFilters, availableDimensions, availableMeasures, dataModels, storyTemplates, smartInsights, modelConfigs } from '../data/mockData';
 
 interface DataContextType {
-  data: DataRow[];
-  filteredData: DataRow[];
+  data: any[];
+  filteredData: any[];
   stories: Story[];
   filters: Filter[];
   dimensions: Dimension[];
@@ -16,18 +16,24 @@ interface DataContextType {
   activePageIndex: number;
   widgetFilters: WidgetFilter[];
   linkedAnalysisEnabled: boolean;
+  selectedModel: DataModel | null;
+  selectedModelDimensions: Dimension[];
+  selectedModelMeasures: Measure[];
   setFilters: (filters: Filter[]) => void;
   applyFilter: (filterId: string, value: string) => void;
+  resetFilters: () => void;
   setActiveStory: (story: Story | null) => void;
   setActivePageIndex: (index: number) => void;
   createStory: (title: string, description: string) => void;
   createStoryFromTemplate: (template: StoryTemplate) => void;
-  saveStory: (storyId: string) => void;
+  saveStory: (storyId: string, newTitle?: string) => void;
+  saveStoryAs: (storyId: string, newTitle: string, newDescription: string) => void;
   addPageToStory: (storyId: string, pageTitle: string) => void;
   deletePageFromStory: (storyId: string, pageId: string) => void;
   addWidgetToPage: (storyId: string, pageId: string, widget: any) => void;
   updateWidget: (storyId: string, pageId: string, widgetId: string, widget: any) => void;
   duplicateWidget: (storyId: string, pageId: string, widgetId: string) => void;
+  copyWidgetToPage: (storyId: string, fromPageId: string, widgetId: string, toPageId: string) => void;
   deleteWidget: (storyId: string, pageId: string, widgetId: string) => void;
   deleteStory: (storyId: string) => void;
   searchAll: (query: string) => SearchResult[];
@@ -41,8 +47,13 @@ interface DataContextType {
   getAggregatedData: (dimension: string, measure: string) => { name: string; value: number }[];
   getMultiMeasureData: (dimension: string, measures: string[]) => any[];
   getVarianceData: (dimension: string, actualMeasure: string, planMeasure: string) => any[];
-  getFilteredDataForWidget: (widgetFilters: WidgetFilter[]) => DataRow[];
+  getFilteredDataForWidget: (widgetFilters: WidgetFilter[]) => any[];
   getDrillDownData: (dimension: string, measure: string, parentValue: string) => any[];
+  selectModel: (modelId: string) => void;
+  getModelDimensions: (modelId: string) => Dimension[];
+  getModelMeasures: (modelId: string) => Measure[];
+  getModelFilters: (modelId: string) => Filter[];
+  getModelData: (modelId: string) => any[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -50,7 +61,6 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const STORAGE_KEY = 'sac_clone_stories';
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [data] = useState<DataRow[]>(rawData);
   const [stories, setStories] = useState<Story[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -62,25 +72,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     return defaultStories;
   });
+  
+  const [selectedModelId, setSelectedModelId] = useState<string>('model1');
   const [filters, setFilters] = useState<Filter[]>(initialFilters);
   const [activeStory, setActiveStory] = useState<Story | null>(null);
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilter[]>([]);
   const [linkedAnalysisEnabled, setLinkedAnalysisEnabled] = useState(true);
 
-  const filteredData = data.filter(row => {
-    const yearFilter = filters.find(f => f.label === 'Year');
-    const regionFilter = filters.find(f => f.label === 'Region');
-    const productFilter = filters.find(f => f.label === 'Product');
+  // Get current model configuration
+  const currentModelConfig = modelConfigs[selectedModelId] || modelConfigs['model1'];
+  const selectedModel = dataModels.find(m => m.id === selectedModelId) || dataModels[0];
+  const selectedModelDimensions = currentModelConfig.dimensions;
+  const selectedModelMeasures = currentModelConfig.measures;
+  const data = currentModelConfig.data;
 
-    if (yearFilter && yearFilter.selected !== 'All' && row.year !== yearFilter.selected) return false;
-    if (regionFilter && regionFilter.selected !== 'All' && row.region !== regionFilter.selected) return false;
-    if (productFilter && productFilter.selected !== 'All' && row.product !== productFilter.selected) return false;
+  // Update filters when model changes
+  useEffect(() => {
+    const modelFilters = currentModelConfig.filters.map(f => ({ ...f, selected: 'All' }));
+    setFilters(modelFilters);
+    setWidgetFilters([]);
+  }, [selectedModelId]);
 
-    // Apply widget drill-down filters (linked analysis)
+  // Filter data based on current filters
+  const filteredData = data.filter((row: any) => {
+    // Apply global filters
+    for (const filter of filters) {
+      if (filter.selected !== 'All') {
+        const field = filter.label.toLowerCase().replace(' ', '');
+        // Find matching field in row
+        const matchingField = Object.keys(row).find(
+          key => key.toLowerCase() === field || 
+                 key.toLowerCase().includes(filter.label.toLowerCase().split(' ')[0].toLowerCase())
+        );
+        if (matchingField && row[matchingField] !== filter.selected) {
+          return false;
+        }
+      }
+    }
+
+    // Apply widget filters (linked analysis)
     if (linkedAnalysisEnabled) {
       for (const wf of widgetFilters) {
-        const rowValue = row[wf.field as keyof DataRow];
+        const rowValue = row[wf.field];
         if (wf.selectedValues.length > 0 && !wf.selectedValues.includes(String(rowValue))) {
           return false;
         }
@@ -94,6 +128,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setFilters(filters.map(f => 
       f.id === filterId ? { ...f, selected: value } : f
     ));
+  };
+
+  const resetFilters = () => {
+    setFilters(filters.map(f => ({ ...f, selected: 'All' })));
+    setWidgetFilters([]);
   };
 
   const applyWidgetFilter = (filter: WidgetFilter) => {
@@ -121,10 +160,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const selectModel = (modelId: string) => {
+    setSelectedModelId(modelId);
+  };
+
+  const getModelDimensions = (modelId: string): Dimension[] => {
+    return modelConfigs[modelId]?.dimensions || availableDimensions;
+  };
+
+  const getModelMeasures = (modelId: string): Measure[] => {
+    return modelConfigs[modelId]?.measures || availableMeasures;
+  };
+
+  const getModelFilters = (modelId: string): Filter[] => {
+    return modelConfigs[modelId]?.filters || initialFilters;
+  };
+
+  const getModelData = (modelId: string): any[] => {
+    return modelConfigs[modelId]?.data || rawData;
+  };
+
   const getFilteredDataForWidget = (wFilters: WidgetFilter[]) => {
-    return filteredData.filter(row => {
+    return filteredData.filter((row: any) => {
       for (const wf of wFilters) {
-        const rowValue = row[wf.field as keyof DataRow];
+        const rowValue = row[wf.field];
         if (wf.selectedValues.length > 0 && !wf.selectedValues.includes(String(rowValue))) {
           return false;
         }
@@ -187,11 +246,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setActivePageIndex(0);
   };
 
-  const saveStory = (storyId: string) => {
+  const saveStory = (storyId: string, newTitle?: string) => {
     const updatedStories = stories.map(story => {
       if (story.id === storyId) {
         const savedStory = {
           ...story,
+          title: newTitle || story.title,
           isSaved: true,
           updatedAt: new Date().toISOString().split('T')[0],
           version: (story.version || 0) + 1
@@ -204,6 +264,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return story;
     });
     setStories(updatedStories);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStories));
+  };
+
+  const saveStoryAs = (storyId: string, newTitle: string, newDescription: string) => {
+    const originalStory = stories.find(s => s.id === storyId);
+    if (!originalStory) return;
+
+    const newStory: Story = {
+      ...originalStory,
+      id: `story-${Date.now()}`,
+      title: newTitle,
+      description: newDescription,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      isSaved: true,
+      version: 1
+    };
+
+    const updatedStories = [newStory, ...stories];
+    setStories(updatedStories);
+    setActiveStory(newStory);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStories));
   };
 
@@ -268,7 +349,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let suggestedMeasures: string[] = [];
     let confidence = 0.7;
 
-    // Detect chart type
+    // Use selected model dimensions and measures
+    const modelDims = selectedModelDimensions.map(d => d.field);
+    const modelMeas = selectedModelMeasures.map(m => m.field);
+
     if (lowerQuery.includes('trend') || lowerQuery.includes('over time')) {
       suggestedChart = 'line';
       confidence = 0.85;
@@ -281,42 +365,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else if (lowerQuery.includes('variance') || lowerQuery.includes('waterfall')) {
       suggestedChart = 'waterfall';
       confidence = 0.88;
-    } else if (lowerQuery.includes('map') || lowerQuery.includes('geographic') || lowerQuery.includes('location')) {
-      suggestedChart = 'geomap';
-      confidence = 0.9;
     }
 
-    // Detect dimensions
-    if (lowerQuery.includes('region') || lowerQuery.includes('geography') || lowerQuery.includes('location')) {
-      suggestedDimensions.push('region');
-    }
-    if (lowerQuery.includes('product')) {
-      suggestedDimensions.push('product');
-    }
-    if (lowerQuery.includes('month') || lowerQuery.includes('time') || lowerQuery.includes('period')) {
-      suggestedDimensions.push('month');
-    }
-    if (lowerQuery.includes('year')) {
-      suggestedDimensions.push('year');
+    // Match dimensions from selected model
+    for (const dim of selectedModelDimensions) {
+      if (lowerQuery.includes(dim.name.toLowerCase()) || lowerQuery.includes(dim.field.toLowerCase())) {
+        suggestedDimensions.push(dim.field);
+      }
     }
 
-    // Detect measures
-    if (lowerQuery.includes('revenue') || lowerQuery.includes('sales')) {
-      suggestedMeasures.push('revenue');
-    }
-    if (lowerQuery.includes('profit') || lowerQuery.includes('margin')) {
-      suggestedMeasures.push('profit');
-    }
-    if (lowerQuery.includes('cost') || lowerQuery.includes('expense')) {
-      suggestedMeasures.push('costs');
-    }
-    if (lowerQuery.includes('quantity') || lowerQuery.includes('volume') || lowerQuery.includes('units')) {
-      suggestedMeasures.push('quantity');
+    // Match measures from selected model
+    for (const meas of selectedModelMeasures) {
+      if (lowerQuery.includes(meas.name.toLowerCase()) || lowerQuery.includes(meas.field.toLowerCase())) {
+        suggestedMeasures.push(meas.field);
+      }
     }
 
-    // Default if nothing detected
-    if (suggestedDimensions.length === 0) suggestedDimensions.push('region');
-    if (suggestedMeasures.length === 0) suggestedMeasures.push('revenue');
+    // Default fallbacks - use first dimension and measure from model
+    if (suggestedDimensions.length === 0 && modelDims.length > 0) {
+      suggestedDimensions.push(modelDims[0]);
+    }
+
+    if (suggestedMeasures.length === 0 && modelMeas.length > 0) {
+      suggestedMeasures.push(modelMeas[0]);
+    }
 
     return {
       query,
@@ -380,7 +452,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           isSaved: false,
           pages: story.pages.map(page => {
             if (page.id === pageId) {
-              const newWidget = { ...widget, id: `widget-${Date.now()}`, linkedAnalysis: true };
+              const newWidget = { ...widget, id: widget.id || `widget-${Date.now()}`, linkedAnalysis: true };
               const newLayout = {
                 i: newWidget.id,
                 x: (page.widgets.length * 6) % 12,
@@ -473,6 +545,51 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setActiveStory(updatedStory);
         }
         return updatedStory;
+      }
+      return story;
+    }));
+  };
+
+  const copyWidgetToPage = (storyId: string, fromPageId: string, widgetId: string, toPageId: string) => {
+    setStories(stories.map(story => {
+      if (story.id === storyId) {
+        const fromPage = story.pages.find(p => p.id === fromPageId);
+        const originalWidget = fromPage?.widgets.find(w => w.id === widgetId);
+        
+        if (originalWidget) {
+          const updatedStory = {
+            ...story,
+            isSaved: false,
+            pages: story.pages.map(page => {
+              if (page.id === toPageId) {
+                const newWidget = {
+                  ...originalWidget,
+                  id: `widget-${Date.now()}`,
+                  title: `${originalWidget.title}`
+                };
+                const newLayout = {
+                  i: newWidget.id,
+                  x: (page.widgets.length * 6) % 12,
+                  y: Math.floor(page.widgets.length / 2) * 4,
+                  w: 6,
+                  h: 4,
+                  minW: 3,
+                  minH: 2
+                };
+                return {
+                  ...page,
+                  widgets: [...page.widgets, newWidget],
+                  layout: [...(page.layout || []), newLayout]
+                };
+              }
+              return page;
+            })
+          };
+          if (activeStory?.id === storyId) {
+            setActiveStory(updatedStory);
+          }
+          return updatedStory;
+        }
       }
       return story;
     }));
@@ -573,14 +690,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getAggregatedData = (dimension: string, measure: string) => {
     const aggregated: { [key: string]: number } = {};
     
-    filteredData.forEach(row => {
-      const dimValue = row[dimension as keyof DataRow] as string;
-      const measValue = row[measure as keyof DataRow] as number;
+    filteredData.forEach((row: any) => {
+      const dimValue = row[dimension] as string;
+      const measValue = Number(row[measure]) || 0;
       
-      if (aggregated[dimValue]) {
-        aggregated[dimValue] += measValue;
-      } else {
-        aggregated[dimValue] = measValue;
+      if (dimValue) {
+        if (aggregated[dimValue]) {
+          aggregated[dimValue] += measValue;
+        } else {
+          aggregated[dimValue] = measValue;
+        }
       }
     });
 
@@ -590,19 +709,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getMultiMeasureData = (dimension: string, measures: string[]) => {
     const aggregated: { [key: string]: any } = {};
     
-    filteredData.forEach(row => {
-      const dimValue = row[dimension as keyof DataRow] as string;
+    filteredData.forEach((row: any) => {
+      const dimValue = row[dimension] as string;
       
-      if (!aggregated[dimValue]) {
-        aggregated[dimValue] = { name: dimValue };
+      if (dimValue) {
+        if (!aggregated[dimValue]) {
+          aggregated[dimValue] = { name: dimValue };
+          measures.forEach(m => {
+            aggregated[dimValue][m] = 0;
+          });
+        }
+        
         measures.forEach(m => {
-          aggregated[dimValue][m] = 0;
+          aggregated[dimValue][m] += Number(row[m]) || 0;
         });
       }
-      
-      measures.forEach(m => {
-        aggregated[dimValue][m] += row[m as keyof DataRow] as number;
-      });
     });
 
     return Object.values(aggregated);
@@ -611,21 +732,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getVarianceData = (dimension: string, actualMeasure: string, planMeasure: string) => {
     const aggregated: { [key: string]: any } = {};
     
-    filteredData.forEach(row => {
-      const dimValue = row[dimension as keyof DataRow] as string;
+    filteredData.forEach((row: any) => {
+      const dimValue = row[dimension] as string;
       
-      if (!aggregated[dimValue]) {
-        aggregated[dimValue] = { 
-          name: dimValue, 
-          actual: 0, 
-          plan: 0, 
-          variance: 0, 
-          variancePercent: 0 
-        };
+      if (dimValue) {
+        if (!aggregated[dimValue]) {
+          aggregated[dimValue] = { 
+            name: dimValue, 
+            actual: 0, 
+            plan: 0, 
+            variance: 0, 
+            variancePercent: 0 
+          };
+        }
+        
+        aggregated[dimValue].actual += Number(row[actualMeasure]) || 0;
+        aggregated[dimValue].plan += Number(row[planMeasure]) || 0;
       }
-      
-      aggregated[dimValue].actual += (row[actualMeasure as keyof DataRow] as number) || 0;
-      aggregated[dimValue].plan += (row[planMeasure as keyof DataRow] as number) || 0;
     });
 
     return Object.values(aggregated).map((item: any) => ({
@@ -636,22 +759,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const getDrillDownData = (dimension: string, measure: string, parentValue: string) => {
-    const childDimension = dimension === 'region' ? 'product' : 'month';
+    // Find next dimension in hierarchy
+    const dimIndex = selectedModelDimensions.findIndex(d => d.field === dimension);
+    const nextDim = selectedModelDimensions[dimIndex + 1];
+    const childDimension = nextDim?.field || dimension;
     
-    const filtered = filteredData.filter(row => 
-      row[dimension as keyof DataRow] === parentValue
+    const filtered = filteredData.filter((row: any) => 
+      row[dimension] === parentValue
     );
 
     const aggregated: { [key: string]: number } = {};
     
-    filtered.forEach(row => {
-      const dimValue = row[childDimension as keyof DataRow] as string;
-      const measValue = row[measure as keyof DataRow] as number;
+    filtered.forEach((row: any) => {
+      const dimValue = row[childDimension] as string;
+      const measValue = Number(row[measure]) || 0;
       
-      if (aggregated[dimValue]) {
-        aggregated[dimValue] += measValue;
-      } else {
-        aggregated[dimValue] = measValue;
+      if (dimValue) {
+        if (aggregated[dimValue]) {
+          aggregated[dimValue] += measValue;
+        } else {
+          aggregated[dimValue] = measValue;
+        }
       }
     });
 
@@ -664,8 +792,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       filteredData,
       stories,
       filters,
-      dimensions: availableDimensions,
-      measures: availableMeasures,
+      dimensions: selectedModelDimensions,
+      measures: selectedModelMeasures,
       dataModels,
       templates: storyTemplates,
       smartInsights,
@@ -673,18 +801,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       activePageIndex,
       widgetFilters,
       linkedAnalysisEnabled,
+      selectedModel,
+      selectedModelDimensions,
+      selectedModelMeasures,
       setFilters,
       applyFilter,
+      resetFilters,
       setActiveStory,
       setActivePageIndex,
       createStory,
       createStoryFromTemplate,
       saveStory,
+      saveStoryAs,
       addPageToStory,
       deletePageFromStory,
       addWidgetToPage,
       updateWidget,
       duplicateWidget,
+      copyWidgetToPage,
       deleteWidget,
       deleteStory,
       searchAll,
@@ -699,7 +833,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getMultiMeasureData,
       getVarianceData,
       getFilteredDataForWidget,
-      getDrillDownData
+      getDrillDownData,
+      selectModel,
+      getModelDimensions,
+      getModelMeasures,
+      getModelFilters,
+      getModelData
     }}>
       {children}
     </DataContext.Provider>

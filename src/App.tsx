@@ -5,6 +5,7 @@ import { HomePage } from './components/HomePage';
 import { Dashboard } from './components/Dashboard';
 import { DataModelView } from './components/DataModelView';
 import { TemplateSelector } from './components/TemplateSelector';
+import { StoryEditor } from './components/StoryEditor';
 import { DataProvider, useData } from './context/DataContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import './index.css';
@@ -13,7 +14,7 @@ const AppContent: React.FC = () => {
   const [activeView, setActiveView] = useState('home');
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const { theme } = useTheme();
-  const { setActiveStory } = useData();
+  const { setActiveStory, activeStory, createStory } = useData();
 
   const handleOpenStory = (story: any) => {
     setActiveStory(story);
@@ -24,12 +25,21 @@ const AppContent: React.FC = () => {
     setIsTemplateOpen(true);
   };
 
+  const handleNavigate = (view: string) => {
+    setActiveView(view);
+  };
+
   const renderContent = () => {
+    // If there's an active story, show the story editor
+    if (activeStory) {
+      return <StoryEditor />;
+    }
+
     switch (activeView) {
       case 'home':
         return (
           <HomePage 
-            onNavigate={setActiveView}
+            onNavigate={handleNavigate}
             onOpenStory={handleOpenStory}
             onCreateStory={handleCreateStory}
           />
@@ -203,7 +213,6 @@ const AppContent: React.FC = () => {
                 </div>
               ))}
             </div>
-            <TemplateSelector isOpen={isTemplateOpen} onClose={() => setIsTemplateOpen(false)} />
           </div>
         );
       case 'settings':
@@ -307,7 +316,7 @@ const AppContent: React.FC = () => {
       default:
         return (
           <HomePage 
-            onNavigate={setActiveView}
+            onNavigate={handleNavigate}
             onOpenStory={handleOpenStory}
             onCreateStory={handleCreateStory}
           />
@@ -317,9 +326,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className={`flex h-screen ${theme.mode === 'dark' ? 'dark' : ''}`}>
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Sidebar activeView={activeView} onViewChange={handleNavigate} />
       <div className="flex-1 flex flex-col overflow-hidden bg-gray-100 dark:bg-gray-900">
-        <Header />
+        <Header onNavigate={handleNavigate} />
         <main className="flex-1 overflow-auto">
           {renderContent()}
         </main>

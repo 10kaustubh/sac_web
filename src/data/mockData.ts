@@ -56,18 +56,58 @@ export const rawData: DataRow[] = [
   { id: '46', region: 'Latin America', product: 'Product A', year: '2024', month: 'Apr', revenue: 118000, costs: 72000, profit: 46000, quantity: 295, plan_revenue: 110000, plan_costs: 68000, plan_profit: 42000, previous_year_revenue: 102000, latitude: -23.5505, longitude: -46.6333 },
   { id: '47', region: 'Latin America', product: 'Product B', year: '2024', month: 'Apr', revenue: 102000, costs: 65000, profit: 37000, quantity: 255, plan_revenue: 98000, plan_costs: 62000, plan_profit: 36000, previous_year_revenue: 88000, latitude: -23.5505, longitude: -46.6333 },
   { id: '48', region: 'Latin America', product: 'Product C', year: '2024', month: 'Apr', revenue: 88000, costs: 56000, profit: 32000, quantity: 220, plan_revenue: 85000, plan_costs: 54000, plan_profit: 31000, previous_year_revenue: 75000, latitude: -23.5505, longitude: -46.6333 },
-  
-  // 2023 Data
-  { id: '49', region: 'North America', product: 'Product A', year: '2023', month: 'Jan', revenue: 165000, costs: 110000, profit: 55000, quantity: 400, plan_revenue: 160000, plan_costs: 105000, plan_profit: 55000, latitude: 40.7128, longitude: -74.0060 },
-  { id: '50', region: 'North America', product: 'Product B', year: '2023', month: 'Jan', revenue: 128000, costs: 85000, profit: 43000, quantity: 340, plan_revenue: 125000, plan_costs: 82000, plan_profit: 43000, latitude: 40.7128, longitude: -74.0060 },
-  { id: '51', region: 'North America', product: 'Product C', year: '2023', month: 'Jan', revenue: 108000, costs: 72000, profit: 36000, quantity: 280, plan_revenue: 105000, plan_costs: 70000, plan_profit: 35000, latitude: 40.7128, longitude: -74.0060 },
-  { id: '52', region: 'Europe', product: 'Product A', year: '2023', month: 'Jan', revenue: 142000, costs: 92000, profit: 50000, quantity: 355, plan_revenue: 138000, plan_costs: 90000, plan_profit: 48000, latitude: 51.5074, longitude: -0.1278 },
-  { id: '53', region: 'Europe', product: 'Product B', year: '2023', month: 'Jan', revenue: 118000, costs: 78000, profit: 40000, quantity: 295, plan_revenue: 115000, plan_costs: 75000, plan_profit: 40000, latitude: 51.5074, longitude: -0.1278 },
-  { id: '54', region: 'Europe', product: 'Product C', year: '2023', month: 'Jan', revenue: 102000, costs: 68000, profit: 34000, quantity: 255, plan_revenue: 100000, plan_costs: 66000, plan_profit: 34000, latitude: 51.5074, longitude: -0.1278 },
-  { id: '55', region: 'Asia Pacific', product: 'Product A', year: '2023', month: 'Jan', revenue: 105000, costs: 70000, profit: 35000, quantity: 262, plan_revenue: 102000, plan_costs: 68000, plan_profit: 34000, latitude: 35.6762, longitude: 139.6503 },
-  { id: '56', region: 'Asia Pacific', product: 'Product B', year: '2023', month: 'Jan', revenue: 88000, costs: 58000, profit: 30000, quantity: 220, plan_revenue: 85000, plan_costs: 56000, plan_profit: 29000, latitude: 35.6762, longitude: 139.6503 },
-  { id: '57', region: 'Latin America', product: 'Product A', year: '2023', month: 'Jan', revenue: 72000, costs: 48000, profit: 24000, quantity: 180, plan_revenue: 70000, plan_costs: 46000, plan_profit: 24000, latitude: -23.5505, longitude: -46.6333 },
-  { id: '58', region: 'Latin America', product: 'Product B', year: '2023', month: 'Jan', revenue: 62000, costs: 42000, profit: 20000, quantity: 155, plan_revenue: 60000, plan_costs: 40000, plan_profit: 20000, latitude: -23.5505, longitude: -46.6333 },
+];
+
+// Additional data for other models
+export const customerData = [
+  { customerId: 'C001', customerName: 'Acme Corp', segment: 'Enterprise', industry: 'Technology', country: 'USA', ltv: 250000, totalOrders: 45, avgOrderValue: 5500, churnRisk: 0.12 },
+  { customerId: 'C002', customerName: 'Global Tech', segment: 'Enterprise', industry: 'Technology', country: 'UK', ltv: 180000, totalOrders: 32, avgOrderValue: 5600, churnRisk: 0.08 },
+  { customerId: 'C003', customerName: 'Retail Plus', segment: 'Mid-Market', industry: 'Retail', country: 'Germany', ltv: 95000, totalOrders: 28, avgOrderValue: 3400, churnRisk: 0.25 },
+  { customerId: 'C004', customerName: 'Finance Pro', segment: 'Enterprise', industry: 'Finance', country: 'USA', ltv: 320000, totalOrders: 52, avgOrderValue: 6150, churnRisk: 0.05 },
+  { customerId: 'C005', customerName: 'Health Systems', segment: 'Mid-Market', industry: 'Healthcare', country: 'Canada', ltv: 145000, totalOrders: 38, avgOrderValue: 3800, churnRisk: 0.18 },
+  { customerId: 'C006', customerName: 'Edu Learn', segment: 'SMB', industry: 'Education', country: 'Australia', ltv: 65000, totalOrders: 22, avgOrderValue: 2950, churnRisk: 0.32 },
+  { customerId: 'C007', customerName: 'Mfg Industries', segment: 'Enterprise', industry: 'Manufacturing', country: 'Japan', ltv: 280000, totalOrders: 48, avgOrderValue: 5800, churnRisk: 0.10 },
+  { customerId: 'C008', customerName: 'Service Co', segment: 'Mid-Market', industry: 'Services', country: 'France', ltv: 120000, totalOrders: 35, avgOrderValue: 3400, churnRisk: 0.22 },
+];
+
+export const inventoryData = [
+  { sku: 'SKU-001', productName: 'Widget A', warehouse: 'US-East', category: 'Electronics', stockLevel: 1500, reorderPoint: 500, unitCost: 45, stockValue: 67500 },
+  { sku: 'SKU-002', productName: 'Widget B', warehouse: 'US-East', category: 'Electronics', stockLevel: 2200, reorderPoint: 800, unitCost: 32, stockValue: 70400 },
+  { sku: 'SKU-003', productName: 'Gadget X', warehouse: 'US-West', category: 'Accessories', stockLevel: 3500, reorderPoint: 1000, unitCost: 18, stockValue: 63000 },
+  { sku: 'SKU-004', productName: 'Gadget Y', warehouse: 'EU-Central', category: 'Accessories', stockLevel: 1800, reorderPoint: 600, unitCost: 22, stockValue: 39600 },
+  { sku: 'SKU-005', productName: 'Component Z', warehouse: 'Asia-Pacific', category: 'Components', stockLevel: 5000, reorderPoint: 1500, unitCost: 8, stockValue: 40000 },
+  { sku: 'SKU-006', productName: 'Device Pro', warehouse: 'US-East', category: 'Devices', stockLevel: 800, reorderPoint: 300, unitCost: 120, stockValue: 96000 },
+];
+
+export const financialData = [
+  { costCenter: 'CC-100', department: 'Sales', account: 'Revenue', fiscalYear: '2024', period: 'Q1', budget: 500000, actual: 525000, variance: 25000, variancePercent: 5 },
+  { costCenter: 'CC-100', department: 'Sales', account: 'Expenses', fiscalYear: '2024', period: 'Q1', budget: 150000, actual: 142000, variance: -8000, variancePercent: -5.3 },
+  { costCenter: 'CC-200', department: 'Marketing', account: 'Revenue', fiscalYear: '2024', period: 'Q1', budget: 200000, actual: 185000, variance: -15000, variancePercent: -7.5 },
+  { costCenter: 'CC-200', department: 'Marketing', account: 'Expenses', fiscalYear: '2024', period: 'Q1', budget: 180000, actual: 195000, variance: 15000, variancePercent: 8.3 },
+  { costCenter: 'CC-300', department: 'Operations', account: 'Revenue', fiscalYear: '2024', period: 'Q1', budget: 350000, actual: 362000, variance: 12000, variancePercent: 3.4 },
+  { costCenter: 'CC-300', department: 'Operations', account: 'Expenses', fiscalYear: '2024', period: 'Q1', budget: 280000, actual: 275000, variance: -5000, variancePercent: -1.8 },
+  { costCenter: 'CC-400', department: 'IT', account: 'Expenses', fiscalYear: '2024', period: 'Q1', budget: 120000, actual: 118000, variance: -2000, variancePercent: -1.7 },
+  { costCenter: 'CC-500', department: 'HR', account: 'Expenses', fiscalYear: '2024', period: 'Q1', budget: 95000, actual: 92000, variance: -3000, variancePercent: -3.2 },
+];
+
+export const hrData = [
+  { employeeId: 'E001', department: 'Engineering', jobLevel: 'Senior', location: 'New York', hireDate: '2020-03-15', salary: 125000, bonus: 15000, performanceScore: 4.5, trainingHours: 40 },
+  { employeeId: 'E002', department: 'Engineering', jobLevel: 'Mid', location: 'San Francisco', hireDate: '2021-06-01', salary: 95000, bonus: 8000, performanceScore: 4.2, trainingHours: 32 },
+  { employeeId: 'E003', department: 'Sales', jobLevel: 'Senior', location: 'Chicago', hireDate: '2019-01-10', salary: 110000, bonus: 25000, performanceScore: 4.8, trainingHours: 24 },
+  { employeeId: 'E004', department: 'Sales', jobLevel: 'Junior', location: 'Boston', hireDate: '2023-02-20', salary: 65000, bonus: 5000, performanceScore: 3.8, trainingHours: 48 },
+  { employeeId: 'E005', department: 'Marketing', jobLevel: 'Mid', location: 'Los Angeles', hireDate: '2022-04-15', salary: 85000, bonus: 7500, performanceScore: 4.0, trainingHours: 28 },
+  { employeeId: 'E006', department: 'HR', jobLevel: 'Senior', location: 'New York', hireDate: '2018-09-01', salary: 105000, bonus: 12000, performanceScore: 4.3, trainingHours: 36 },
+  { employeeId: 'E007', department: 'Finance', jobLevel: 'Mid', location: 'Chicago', hireDate: '2021-11-10', salary: 92000, bonus: 9000, performanceScore: 4.1, trainingHours: 30 },
+  { employeeId: 'E008', department: 'Operations', jobLevel: 'Junior', location: 'Dallas', hireDate: '2023-07-01', salary: 58000, bonus: 3500, performanceScore: 3.5, trainingHours: 52 },
+];
+
+export const supplyChainData = [
+  { supplierId: 'SUP-001', supplierName: 'Tech Components Inc', category: 'Electronics', region: 'North America', contractType: 'Preferred', spend: 450000, onTimeDelivery: 96.5, qualityScore: 4.8, leadTime: 14 },
+  { supplierId: 'SUP-002', supplierName: 'Global Materials Ltd', category: 'Raw Materials', region: 'Europe', contractType: 'Standard', spend: 320000, onTimeDelivery: 92.3, qualityScore: 4.2, leadTime: 21 },
+  { supplierId: 'SUP-003', supplierName: 'Asia Manufacturing', category: 'Components', region: 'Asia Pacific', contractType: 'Preferred', spend: 580000, onTimeDelivery: 94.8, qualityScore: 4.5, leadTime: 28 },
+  { supplierId: 'SUP-004', supplierName: 'PackRight Solutions', category: 'Packaging', region: 'North America', contractType: 'Standard', spend: 125000, onTimeDelivery: 98.2, qualityScore: 4.6, leadTime: 7 },
+  { supplierId: 'SUP-005', supplierName: 'Euro Parts GmbH', category: 'Components', region: 'Europe', contractType: 'Strategic', spend: 680000, onTimeDelivery: 97.1, qualityScore: 4.9, leadTime: 18 },
+  { supplierId: 'SUP-006', supplierName: 'Quick Logistics', category: 'Services', region: 'North America', contractType: 'Standard', spend: 220000, onTimeDelivery: 99.1, qualityScore: 4.7, leadTime: 3 },
 ];
 
 export const availableDimensions: Dimension[] = [
@@ -89,272 +129,134 @@ export const availableMeasures: Measure[] = [
 ];
 
 export const smartInsights: SmartInsight[] = [
-  {
-    id: 'insight1',
-    type: 'trend',
-    title: 'Revenue Growth Trend',
-    description: 'North America revenue shows consistent 12% month-over-month growth, outperforming other regions.',
-    confidence: 0.92,
-    relatedDimension: 'region',
-    relatedMeasure: 'revenue',
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'insight2',
-    type: 'anomaly',
-    title: 'Cost Spike Detected',
-    description: 'Asia Pacific costs increased 18% in March, significantly above the 5% average increase.',
-    confidence: 0.87,
-    relatedDimension: 'region',
-    relatedMeasure: 'costs',
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'insight3',
-    type: 'correlation',
-    title: 'Product A Drives Profit',
-    description: 'Product A contributes 45% of total profit while representing only 35% of revenue.',
-    confidence: 0.95,
-    relatedDimension: 'product',
-    relatedMeasure: 'profit',
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'insight4',
-    type: 'forecast',
-    title: 'Q2 Revenue Forecast',
-    description: 'Based on current trends, Q2 revenue is projected to reach $4.2M, 15% above plan.',
-    confidence: 0.78,
-    relatedMeasure: 'revenue',
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'insight5',
-    type: 'anomaly',
-    title: 'Latin America Underperforming',
-    description: 'Latin America is 8% below revenue plan for 3 consecutive months.',
-    confidence: 0.89,
-    relatedDimension: 'region',
-    relatedMeasure: 'revenue',
-    timestamp: new Date().toISOString()
-  }
+  { id: 'insight1', type: 'trend', title: 'Revenue Growth Trend', description: 'North America revenue shows consistent 12% month-over-month growth.', confidence: 0.92, relatedDimension: 'region', relatedMeasure: 'revenue', timestamp: new Date().toISOString() },
+  { id: 'insight2', type: 'anomaly', title: 'Cost Spike Detected', description: 'Asia Pacific costs increased 18% in March.', confidence: 0.87, relatedDimension: 'region', relatedMeasure: 'costs', timestamp: new Date().toISOString() },
+  { id: 'insight3', type: 'correlation', title: 'Product A Drives Profit', description: 'Product A contributes 45% of total profit.', confidence: 0.95, relatedDimension: 'product', relatedMeasure: 'profit', timestamp: new Date().toISOString() },
 ];
 
-export const dataModels: DataModel[] = [
-  {
-    id: 'model1',
-    name: 'Sales Performance',
-    description: 'Comprehensive sales data including revenue, costs, and profit by region and product',
-    type: 'import',
-    source: 'SAP S/4HANA',
-    columns: [
-      { id: 'col1', name: 'Region', field: 'region', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Product', field: 'product', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Year', field: 'year', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Month', field: 'month', type: 'dimension', dataType: 'string' },
-      { id: 'col5', name: 'Revenue', field: 'revenue', type: 'measure', dataType: 'currency' },
-      { id: 'col6', name: 'Costs', field: 'costs', type: 'measure', dataType: 'currency' },
-      { id: 'col7', name: 'Profit', field: 'profit', type: 'measure', dataType: 'currency' },
-      { id: 'col8', name: 'Quantity', field: 'quantity', type: 'measure', dataType: 'number' },
-      { id: 'col9', name: 'Plan Revenue', field: 'plan_revenue', type: 'measure', dataType: 'currency' },
-      { id: 'col10', name: 'Plan Profit', field: 'plan_profit', type: 'measure', dataType: 'currency' },
-      { id: 'col11', name: 'Latitude', field: 'latitude', type: 'dimension', dataType: 'geo' },
-      { id: 'col12', name: 'Longitude', field: 'longitude', type: 'dimension', dataType: 'geo' },
+// Model-specific configurations
+export const modelConfigs: { [key: string]: { dimensions: Dimension[], measures: Measure[], filters: Filter[], data: any[] } } = {
+  'model1': {
+    dimensions: availableDimensions,
+    measures: availableMeasures,
+    filters: [
+      { id: '1', label: 'Year', options: ['All', '2024', '2023'], selected: 'All' },
+      { id: '2', label: 'Region', options: ['All', 'North America', 'Europe', 'Asia Pacific', 'Latin America'], selected: 'All' },
+      { id: '3', label: 'Product', options: ['All', 'Product A', 'Product B', 'Product C'], selected: 'All' },
     ],
-    lastRefresh: '2024-01-20 09:30:00',
-    rowCount: 58,
-    currencyConversion: { enabled: true, baseCurrency: 'USD', targetCurrency: 'USD' }
+    data: rawData
   },
-  {
-    id: 'model2',
-    name: 'Customer Analytics',
-    description: 'Customer segmentation, lifetime value, and behavioral analytics',
-    type: 'live',
-    source: 'SAP HANA Cloud',
-    columns: [
-      { id: 'col1', name: 'Customer ID', field: 'customerId', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Customer Name', field: 'customerName', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Segment', field: 'segment', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Industry', field: 'industry', type: 'dimension', dataType: 'string' },
-      { id: 'col5', name: 'Country', field: 'country', type: 'dimension', dataType: 'string' },
-      { id: 'col6', name: 'Lifetime Value', field: 'ltv', type: 'measure', dataType: 'currency' },
-      { id: 'col7', name: 'Total Orders', field: 'totalOrders', type: 'measure', dataType: 'number' },
-      { id: 'col8', name: 'Avg Order Value', field: 'avgOrderValue', type: 'measure', dataType: 'currency' },
-      { id: 'col9', name: 'Churn Risk', field: 'churnRisk', type: 'measure', dataType: 'number' },
+  'model2': {
+    dimensions: [
+      { id: 'cust-dim1', name: 'Segment', field: 'segment', values: ['Enterprise', 'Mid-Market', 'SMB'] },
+      { id: 'cust-dim2', name: 'Industry', field: 'industry', values: ['Technology', 'Retail', 'Finance', 'Healthcare', 'Education', 'Manufacturing', 'Services'] },
+      { id: 'cust-dim3', name: 'Country', field: 'country', values: ['USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'] },
     ],
-    lastRefresh: '2024-01-20 12:00:00',
-    rowCount: 15420,
-    blendedWith: ['model1']
+    measures: [
+      { id: 'cust-meas1', name: 'Lifetime Value', field: 'ltv', aggregation: 'sum', color: '#0a6ed1', format: 'currency' },
+      { id: 'cust-meas2', name: 'Total Orders', field: 'totalOrders', aggregation: 'sum', color: '#36a41d', format: 'number' },
+      { id: 'cust-meas3', name: 'Avg Order Value', field: 'avgOrderValue', aggregation: 'avg', color: '#df6e0c', format: 'currency' },
+      { id: 'cust-meas4', name: 'Churn Risk', field: 'churnRisk', aggregation: 'avg', color: '#e74c3c', format: 'percent' },
+    ],
+    filters: [
+      { id: '1', label: 'Segment', options: ['All', 'Enterprise', 'Mid-Market', 'SMB'], selected: 'All' },
+      { id: '2', label: 'Industry', options: ['All', 'Technology', 'Retail', 'Finance', 'Healthcare', 'Education', 'Manufacturing', 'Services'], selected: 'All' },
+      { id: '3', label: 'Country', options: ['All', 'USA', 'UK', 'Germany', 'Canada', 'Australia', 'Japan', 'France'], selected: 'All' },
+    ],
+    data: customerData
   },
-  {
-    id: 'model3',
-    name: 'Inventory Management',
-    description: 'Real-time inventory levels, stock movements, and warehouse data',
-    type: 'live',
-    source: 'SAP EWM',
-    columns: [
-      { id: 'col1', name: 'SKU', field: 'sku', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Product Name', field: 'productName', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Warehouse', field: 'warehouse', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Location', field: 'location', type: 'dimension', dataType: 'geo' },
-      { id: 'col5', name: 'Category', field: 'category', type: 'dimension', dataType: 'string' },
-      { id: 'col6', name: 'Stock Level', field: 'stockLevel', type: 'measure', dataType: 'number' },
-      { id: 'col7', name: 'Reorder Point', field: 'reorderPoint', type: 'measure', dataType: 'number' },
-      { id: 'col8', name: 'Unit Cost', field: 'unitCost', type: 'measure', dataType: 'currency' },
-      { id: 'col9', name: 'Stock Value', field: 'stockValue', type: 'measure', dataType: 'currency' },
+  'model3': {
+    dimensions: [
+      { id: 'inv-dim1', name: 'Warehouse', field: 'warehouse', values: ['US-East', 'US-West', 'EU-Central', 'Asia-Pacific'] },
+      { id: 'inv-dim2', name: 'Category', field: 'category', values: ['Electronics', 'Accessories', 'Components', 'Devices'] },
+      { id: 'inv-dim3', name: 'Product Name', field: 'productName', values: ['Widget A', 'Widget B', 'Gadget X', 'Gadget Y', 'Component Z', 'Device Pro'] },
     ],
-    lastRefresh: '2024-01-20 14:30:00',
-    rowCount: 8750
+    measures: [
+      { id: 'inv-meas1', name: 'Stock Level', field: 'stockLevel', aggregation: 'sum', color: '#0a6ed1', format: 'number' },
+      { id: 'inv-meas2', name: 'Reorder Point', field: 'reorderPoint', aggregation: 'sum', color: '#ff9800', format: 'number' },
+      { id: 'inv-meas3', name: 'Unit Cost', field: 'unitCost', aggregation: 'avg', color: '#36a41d', format: 'currency' },
+      { id: 'inv-meas4', name: 'Stock Value', field: 'stockValue', aggregation: 'sum', color: '#9c27b0', format: 'currency' },
+    ],
+    filters: [
+      { id: '1', label: 'Warehouse', options: ['All', 'US-East', 'US-West', 'EU-Central', 'Asia-Pacific'], selected: 'All' },
+      { id: '2', label: 'Category', options: ['All', 'Electronics', 'Accessories', 'Components', 'Devices'], selected: 'All' },
+    ],
+    data: inventoryData
   },
-  {
-    id: 'model4',
-    name: 'Financial Planning',
-    description: 'Budget, actuals, and variance analysis for financial planning',
-    type: 'import',
-    source: 'SAP BPC',
-    columns: [
-      { id: 'col1', name: 'Cost Center', field: 'costCenter', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Department', field: 'department', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Account', field: 'account', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Fiscal Year', field: 'fiscalYear', type: 'dimension', dataType: 'string' },
-      { id: 'col5', name: 'Period', field: 'period', type: 'dimension', dataType: 'string' },
-      { id: 'col6', name: 'Budget', field: 'budget', type: 'measure', dataType: 'currency' },
-      { id: 'col7', name: 'Actual', field: 'actual', type: 'measure', dataType: 'currency' },
-      { id: 'col8', name: 'Variance', field: 'variance', type: 'measure', dataType: 'currency' },
-      { id: 'col9', name: 'Variance %', field: 'variancePercent', type: 'measure', dataType: 'number' },
+  'model4': {
+    dimensions: [
+      { id: 'fin-dim1', name: 'Department', field: 'department', values: ['Sales', 'Marketing', 'Operations', 'IT', 'HR', 'Finance'] },
+      { id: 'fin-dim2', name: 'Account', field: 'account', values: ['Revenue', 'Expenses'] },
+      { id: 'fin-dim3', name: 'Fiscal Year', field: 'fiscalYear', values: ['2024', '2023'] },
+      { id: 'fin-dim4', name: 'Period', field: 'period', values: ['Q1', 'Q2', 'Q3', 'Q4'] },
     ],
-    lastRefresh: '2024-01-19 16:00:00',
-    rowCount: 4280,
-    currencyConversion: { enabled: true, baseCurrency: 'EUR', targetCurrency: 'USD' }
+    measures: [
+      { id: 'fin-meas1', name: 'Budget', field: 'budget', aggregation: 'sum', color: '#0a6ed1', format: 'currency' },
+      { id: 'fin-meas2', name: 'Actual', field: 'actual', aggregation: 'sum', color: '#36a41d', format: 'currency' },
+      { id: 'fin-meas3', name: 'Variance', field: 'variance', aggregation: 'sum', color: '#e74c3c', format: 'currency' },
+      { id: 'fin-meas4', name: 'Variance %', field: 'variancePercent', aggregation: 'avg', color: '#ff9800', format: 'percent' },
+    ],
+    filters: [
+      { id: '1', label: 'Department', options: ['All', 'Sales', 'Marketing', 'Operations', 'IT', 'HR', 'Finance'], selected: 'All' },
+      { id: '2', label: 'Account', options: ['All', 'Revenue', 'Expenses'], selected: 'All' },
+      { id: '3', label: 'Period', options: ['All', 'Q1', 'Q2', 'Q3', 'Q4'], selected: 'All' },
+    ],
+    data: financialData
   },
-  {
-    id: 'model5',
-    name: 'HR Analytics',
-    description: 'Employee data, headcount, turnover, and workforce analytics',
-    type: 'live',
-    source: 'SAP SuccessFactors',
-    columns: [
-      { id: 'col1', name: 'Employee ID', field: 'employeeId', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Department', field: 'department', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Job Level', field: 'jobLevel', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Location', field: 'location', type: 'dimension', dataType: 'geo' },
-      { id: 'col5', name: 'Hire Date', field: 'hireDate', type: 'dimension', dataType: 'date' },
-      { id: 'col6', name: 'Salary', field: 'salary', type: 'measure', dataType: 'currency' },
-      { id: 'col7', name: 'Bonus', field: 'bonus', type: 'measure', dataType: 'currency' },
-      { id: 'col8', name: 'Performance Score', field: 'performanceScore', type: 'measure', dataType: 'number' },
-      { id: 'col9', name: 'Training Hours', field: 'trainingHours', type: 'measure', dataType: 'number' },
+  'model5': {
+    dimensions: [
+      { id: 'hr-dim1', name: 'Department', field: 'department', values: ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Operations'] },
+      { id: 'hr-dim2', name: 'Job Level', field: 'jobLevel', values: ['Senior', 'Mid', 'Junior'] },
+      { id: 'hr-dim3', name: 'Location', field: 'location', values: ['New York', 'San Francisco', 'Chicago', 'Boston', 'Los Angeles', 'Dallas'] },
     ],
-    lastRefresh: '2024-01-20 08:00:00',
-    rowCount: 3250
+    measures: [
+      { id: 'hr-meas1', name: 'Salary', field: 'salary', aggregation: 'sum', color: '#0a6ed1', format: 'currency' },
+      { id: 'hr-meas2', name: 'Bonus', field: 'bonus', aggregation: 'sum', color: '#36a41d', format: 'currency' },
+      { id: 'hr-meas3', name: 'Performance Score', field: 'performanceScore', aggregation: 'avg', color: '#ff9800', format: 'number' },
+      { id: 'hr-meas4', name: 'Training Hours', field: 'trainingHours', aggregation: 'sum', color: '#9c27b0', format: 'number' },
+    ],
+    filters: [
+      { id: '1', label: 'Department', options: ['All', 'Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Operations'], selected: 'All' },
+      { id: '2', label: 'Job Level', options: ['All', 'Senior', 'Mid', 'Junior'], selected: 'All' },
+      { id: '3', label: 'Location', options: ['All', 'New York', 'San Francisco', 'Chicago', 'Boston', 'Los Angeles', 'Dallas'], selected: 'All' },
+    ],
+    data: hrData
   },
-  {
-    id: 'model6',
-    name: 'Supply Chain',
-    description: 'Supplier performance, procurement, and logistics data',
-    type: 'live',
-    source: 'SAP Ariba',
-    columns: [
-      { id: 'col1', name: 'Supplier ID', field: 'supplierId', type: 'dimension', dataType: 'string' },
-      { id: 'col2', name: 'Supplier Name', field: 'supplierName', type: 'dimension', dataType: 'string' },
-      { id: 'col3', name: 'Category', field: 'category', type: 'dimension', dataType: 'string' },
-      { id: 'col4', name: 'Region', field: 'region', type: 'dimension', dataType: 'string' },
-      { id: 'col5', name: 'Contract Type', field: 'contractType', type: 'dimension', dataType: 'string' },
-      { id: 'col6', name: 'Spend', field: 'spend', type: 'measure', dataType: 'currency' },
-      { id: 'col7', name: 'On-Time Delivery %', field: 'onTimeDelivery', type: 'measure', dataType: 'number' },
-      { id: 'col8', name: 'Quality Score', field: 'qualityScore', type: 'measure', dataType: 'number' },
-      { id: 'col9', name: 'Lead Time (Days)', field: 'leadTime', type: 'measure', dataType: 'number' },
+  'model6': {
+    dimensions: [
+      { id: 'sc-dim1', name: 'Category', field: 'category', values: ['Electronics', 'Raw Materials', 'Components', 'Packaging', 'Services'] },
+      { id: 'sc-dim2', name: 'Region', field: 'region', values: ['North America', 'Europe', 'Asia Pacific'] },
+      { id: 'sc-dim3', name: 'Contract Type', field: 'contractType', values: ['Preferred', 'Standard', 'Strategic'] },
     ],
-    lastRefresh: '2024-01-20 11:00:00',
-    rowCount: 1850
+    measures: [
+      { id: 'sc-meas1', name: 'Spend', field: 'spend', aggregation: 'sum', color: '#0a6ed1', format: 'currency' },
+      { id: 'sc-meas2', name: 'On-Time Delivery %', field: 'onTimeDelivery', aggregation: 'avg', color: '#36a41d', format: 'percent' },
+      { id: 'sc-meas3', name: 'Quality Score', field: 'qualityScore', aggregation: 'avg', color: '#ff9800', format: 'number' },
+      { id: 'sc-meas4', name: 'Lead Time (Days)', field: 'leadTime', aggregation: 'avg', color: '#9c27b0', format: 'number' },
+    ],
+    filters: [
+      { id: '1', label: 'Category', options: ['All', 'Electronics', 'Raw Materials', 'Components', 'Packaging', 'Services'], selected: 'All' },
+      { id: '2', label: 'Region', options: ['All', 'North America', 'Europe', 'Asia Pacific'], selected: 'All' },
+      { id: '3', label: 'Contract Type', options: ['All', 'Preferred', 'Standard', 'Strategic'], selected: 'All' },
+    ],
+    data: supplyChainData
   }
+};
+
+export const dataModels: DataModel[] = [
+  { id: 'model1', name: 'Sales Performance', description: 'Sales data including revenue, costs, and profit by region and product', type: 'import', source: 'SAP S/4HANA', columns: [], lastRefresh: '2024-01-20 09:30:00', rowCount: 48 },
+  { id: 'model2', name: 'Customer Analytics', description: 'Customer segmentation, lifetime value, and behavioral analytics', type: 'live', source: 'SAP HANA Cloud', columns: [], lastRefresh: '2024-01-20 12:00:00', rowCount: 8 },
+  { id: 'model3', name: 'Inventory Management', description: 'Real-time inventory levels, stock movements, and warehouse data', type: 'live', source: 'SAP EWM', columns: [], lastRefresh: '2024-01-20 14:30:00', rowCount: 6 },
+  { id: 'model4', name: 'Financial Planning', description: 'Budget, actuals, and variance analysis for financial planning', type: 'import', source: 'SAP BPC', columns: [], lastRefresh: '2024-01-19 16:00:00', rowCount: 8 },
+  { id: 'model5', name: 'HR Analytics', description: 'Employee data, headcount, turnover, and workforce analytics', type: 'live', source: 'SAP SuccessFactors', columns: [], lastRefresh: '2024-01-20 08:00:00', rowCount: 8 },
+  { id: 'model6', name: 'Supply Chain', description: 'Supplier performance, procurement, and logistics data', type: 'live', source: 'SAP Ariba', columns: [], lastRefresh: '2024-01-20 11:00:00', rowCount: 6 },
 ];
 
 export const storyTemplates: StoryTemplate[] = [
-  {
-    id: 'template1',
-    name: 'Executive Dashboard',
-    description: 'High-level KPIs and trends for executive reporting with variance analysis',
-    thumbnail: '📊',
-    category: 'Finance',
-    pages: [
-      {
-        id: 'tp1',
-        title: 'Overview',
-        widgets: [
-          { id: 'tw1', type: 'kpi', title: 'Revenue KPI', dimensions: [availableDimensions[0]], measures: [availableMeasures[0]], filters: [] },
-          { id: 'tw2', type: 'chart', chartType: 'line', title: 'Revenue Trend', dimensions: [availableDimensions[3]], measures: [availableMeasures[0], availableMeasures[2]], filters: [] }
-        ],
-        linkedAnalysis: true
-      }
-    ]
-  },
-  {
-    id: 'template2',
-    name: 'Sales Analysis',
-    description: 'Detailed sales performance by region and product with drill-down',
-    thumbnail: '📈',
-    category: 'Sales',
-    pages: [
-      {
-        id: 'tp1',
-        title: 'Regional Sales',
-        widgets: [
-          { id: 'tw1', type: 'chart', chartType: 'column', title: 'Sales by Region', dimensions: [availableDimensions[0]], measures: [availableMeasures[0]], filters: [] },
-          { id: 'tw2', type: 'chart', chartType: 'pie', title: 'Product Mix', dimensions: [availableDimensions[1]], measures: [availableMeasures[0]], filters: [] }
-        ],
-        linkedAnalysis: true
-      },
-      {
-        id: 'tp2',
-        title: 'Product Details',
-        widgets: [
-          { id: 'tw3', type: 'table', title: 'Product Performance', dimensions: [availableDimensions[1]], measures: [availableMeasures[0], availableMeasures[2]], filters: [] }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'template3',
-    name: 'Variance Analysis',
-    description: 'Actual vs Plan comparison with waterfall charts',
-    thumbnail: '📉',
-    category: 'Finance',
-    pages: [
-      {
-        id: 'tp1',
-        title: 'Variance Overview',
-        widgets: [
-          { id: 'tw1', type: 'chart', chartType: 'waterfall', title: 'Revenue Variance', dimensions: [availableDimensions[0]], measures: [availableMeasures[0], availableMeasures[4]], filters: [] }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'template4',
-    name: 'Geo Analysis',
-    description: 'Geographic visualization of sales data',
-    thumbnail: '🗺️',
-    category: 'Sales',
-    pages: [
-      {
-        id: 'tp1',
-        title: 'Geographic View',
-        widgets: [
-          { id: 'tw1', type: 'chart', chartType: 'geomap', title: 'Sales by Location', dimensions: [availableDimensions[0]], measures: [availableMeasures[0]], filters: [] }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'template5',
-    name: 'Blank Canvas',
-    description: 'Start with a blank story',
-    thumbnail: '📄',
-    category: 'General',
-    pages: [
-      { id: 'tp1', title: 'Page 1', widgets: [] }
-    ]
-  }
+  { id: 'template1', name: 'Executive Dashboard', description: 'High-level KPIs and trends', thumbnail: '📊', category: 'Finance', pages: [{ id: 'tp1', title: 'Overview', widgets: [] }] },
+  { id: 'template2', name: 'Sales Analysis', description: 'Detailed sales performance', thumbnail: '📈', category: 'Sales', pages: [{ id: 'tp1', title: 'Sales', widgets: [] }] },
+  { id: 'template3', name: 'Variance Analysis', description: 'Actual vs Plan comparison', thumbnail: '📉', category: 'Finance', pages: [{ id: 'tp1', title: 'Variance', widgets: [] }] },
+  { id: 'template4', name: 'Blank Canvas', description: 'Start from scratch', thumbnail: '📄', category: 'General', pages: [{ id: 'tp1', title: 'Page 1', widgets: [] }] },
 ];
 
 export const kpis: KPI[] = [
@@ -365,59 +267,9 @@ export const kpis: KPI[] = [
 ];
 
 export const defaultStories: Story[] = [
-  {
-    id: '1',
-    title: 'Q4 Financial Overview',
-    description: 'Quarterly financial performance analysis with variance',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-    author: 'John Doe',
-    isSaved: true,
-    tags: ['finance', 'quarterly'],
-    version: 1,
-    bookmarks: [
-      { id: 'bm1', name: 'North America View', filters: [], widgetFilters: [{ dimensionId: 'dim1', field: 'region', selectedValues: ['North America'] }], pageIndex: 0, createdAt: '2024-01-15' }
-    ],
-    pages: [
-      {
-        id: 'p1',
-        title: 'Overview',
-        widgets: [
-          { id: 'w1', type: 'chart', chartType: 'column', title: 'Revenue & Profit by Region', dimensions: [availableDimensions[0]], measures: [availableMeasures[0], availableMeasures[2]], filters: [], linkedAnalysis: true }
-        ],
-        layout: [{ i: 'w1', x: 0, y: 0, w: 6, h: 4, minW: 3, minH: 2 }],
-        linkedAnalysis: true
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Sales Performance Dashboard',
-    description: 'Regional sales metrics and KPIs with drill-down',
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-10',
-    author: 'Jane Smith',
-    isSaved: true,
-    tags: ['sales', 'regional'],
-    version: 1,
-    pages: [
-      { id: 'p1', title: 'Sales Overview', widgets: [], layout: [], linkedAnalysis: true }
-    ]
-  },
-  {
-    id: '3',
-    title: 'Cost Analysis Report',
-    description: 'Operating cost breakdown with variance analysis',
-    createdAt: '2024-01-08',
-    updatedAt: '2024-01-08',
-    author: 'Mike Johnson',
-    isSaved: true,
-    tags: ['costs', 'operations'],
-    version: 1,
-    pages: [
-      { id: 'p1', title: 'Cost Breakdown', widgets: [], layout: [] }
-    ]
-  },
+  { id: '1', title: 'Q4 Financial Overview', description: 'Quarterly financial performance analysis', createdAt: '2024-01-15', updatedAt: '2024-01-15', author: 'John Doe', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Overview', widgets: [], linkedAnalysis: true }] },
+  { id: '2', title: 'Sales Performance Dashboard', description: 'Regional sales metrics and KPIs', createdAt: '2024-01-10', updatedAt: '2024-01-10', author: 'Jane Smith', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Sales', widgets: [], linkedAnalysis: true }] },
+  { id: '3', title: 'Cost Analysis Report', description: 'Operating cost breakdown', createdAt: '2024-01-08', updatedAt: '2024-01-08', author: 'Mike Johnson', isSaved: true, version: 1, pages: [{ id: 'p1', title: 'Costs', widgets: [] }] },
 ];
 
 export const filters: Filter[] = [
