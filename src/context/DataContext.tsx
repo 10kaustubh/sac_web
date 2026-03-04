@@ -29,6 +29,7 @@ interface DataContextType {
   saveStory: (storyId: string, newTitle?: string) => void;
   saveStoryAs: (storyId: string, newTitle: string, newDescription: string) => void;
   addPageToStory: (storyId: string, pageTitle: string) => void;
+  addPageWithWidget: (storyId: string, pageTitle: string, widget: Widget) => void;
   deletePageFromStory: (storyId: string, pageId: string) => void;
   addWidgetToPage: (storyId: string, pageId: string, widget: Widget) => void;
   updateWidget: (storyId: string, pageId: string, widgetId: string, widget: Widget) => void;
@@ -427,6 +428,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           layout: [],
           linkedAnalysis: true
         };
+        return {
+          ...story,
+          isSaved: false,
+          pages: [...story.pages, newPage]
+        };
+      }
+      return story;
+    };
+
+    setStories(stories.map(updateStory));
+    if (activeStory?.id === storyId) {
+      const updatedStory = updateStory(activeStory);
+      setActiveStory(updatedStory);
+      setActivePageIndex(updatedStory.pages.length - 1);
+    }
+  };
+
+  const addPageWithWidget = (storyId: string, pageTitle: string, widget: Widget) => {
+    const newPageId = `page-${Date.now()}`;
+    const newWidget = {
+      ...widget,
+      id: `widget-${Date.now()}`,
+      dimensions: widget.dimensions.map(d => ({ ...d })),
+      measures: widget.measures.map(m => ({ ...m })),
+      filters: widget.filters ? widget.filters.map(f => ({ ...f })) : [],
+    };
+    
+    const newPage: Page = {
+      id: newPageId,
+      title: pageTitle,
+      widgets: [newWidget],
+      layout: [],
+      linkedAnalysis: true
+    };
+
+    const updateStory = (story: Story) => {
+      if (story.id === storyId) {
         return {
           ...story,
           isSaved: false,
@@ -844,6 +882,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       saveStory,
       saveStoryAs,
       addPageToStory,
+      addPageWithWidget,
       deletePageFromStory,
       addWidgetToPage,
       updateWidget,

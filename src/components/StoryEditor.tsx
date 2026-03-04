@@ -18,6 +18,7 @@ export const StoryEditor: React.FC = () => {
     setActiveStory, 
     setActivePageIndex,
     addPageToStory,
+    addPageWithWidget,
     deletePageFromStory,
     addWidgetToPage,
     updateWidget,
@@ -103,43 +104,14 @@ export const StoryEditor: React.FC = () => {
       if (!widget) return;
 
       const newPageTitle = `Page ${activeStory.pages.length + 1}`;
-      const newPageId = `page-${Date.now()}`;
       
-      // Create new widget with new ID
-      const newWidget = {
-        ...widget,
-        id: `widget-${Date.now()}`,
-        dimensions: widget.dimensions.map(d => ({ ...d })),
-        measures: widget.measures.map(m => ({ ...m })),
-        filters: widget.filters ? widget.filters.map(f => ({ ...f })) : [],
-      };
-
-      // Create new page with the widget
-      const newPage = {
-        id: newPageId,
-        title: newPageTitle,
-        widgets: [newWidget],
-        layout: [{
-          i: newWidget.id,
-          x: 0,
-          y: 0,
-          w: 6,
-          h: 4,
-          minW: 3,
-          minH: 2
-        }],
-        linkedAnalysis: true
-      };
-
-      // Update the story with new page
-      const updatedStory = {
-        ...activeStory,
-        isSaved: false,
-        pages: [...activeStory.pages, newPage]
-      };
-
-      setActiveStory(updatedStory);
-      setActivePageIndex(updatedStory.pages.length - 1);
+      // Use the new function that creates page with widget in one go
+      addPageWithWidget(activeStory.id, newPageTitle, widget);
+      
+      // Navigate to the new page
+      setTimeout(() => {
+        setActivePageIndex(activeStory.pages.length);
+      }, 50);
     }
   };
 
